@@ -3,16 +3,19 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.ts",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc",
     "start": "npx tsc & node build/server.js",
-    "dev": "nodemon server.ts"
+    "dev": "nodemon server.ts",
+    "prod": "NODE_ENV=Production nodemon server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@exortek/express-mongo-sanitize": "^2.0.1",
     "colors": "^1.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -20,6 +23,7 @@
     "express": "^4.19.2",
     "express-async-errors": "^3.1.1",
     "express-async-handler": "^1.2.0",
+    "express-rate-limit": "^8.2.1",
     "helmet": "^7.1.0",
     "joi": "^17.13.3",
     "mongoose": "^8.2.2",

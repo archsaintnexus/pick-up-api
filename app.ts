@@ -1,0 +1,53 @@
+import express from "express"
+import "express-async-errors"
+import mongoSanitize from "@exortek/express-mongo-sanitize"
+import morgan from "morgan"
+import cors from "cors"
+import helmet from "helmet"
+import rateLimiter from "express-rate-limit"
+
+import errorHandler from "errorhandler"
+
+
+const app = express()
+
+// app.enable("trust proxy"); /... for production .../
+
+if (process.env.NODE_ENV === "development") {
+    app.use(morgan("dev"))
+}
+
+
+
+app.use(cors())
+app.use(helmet())
+
+app.use(express.json({limit:"10kb"}))
+app.use(express.urlencoded({ extended: true, limit: "10kb" }))
+app.use(mongoSanitize())
+
+const limiter = rateLimiter({
+    max: 100,
+    windowMs: 15 * 60 * 1000,
+    message: "Too many requests from this IP, please try again later.",
+})
+
+app.use("/api",limiter)
+
+
+//.... your routes are here too ....
+
+
+// globalErrorhandler comes in here.....
+// app.use()
+
+
+// errorhandler for only in development
+if (process.env.NODE_ENV === "development") {
+    app.use(errorHandler())
+}
+
+
+
+
+export default app;
