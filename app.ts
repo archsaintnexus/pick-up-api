@@ -5,8 +5,13 @@ import morgan from "morgan"
 import cors from "cors"
 import helmet from "helmet"
 import rateLimiter from "express-rate-limit"
+import globalErrorHandler from "./controller/errorController.js"
+
+import userRouter from "./routes/userRoute.js"
 
 import errorHandler from "errorhandler"
+import ErrorClass from "./utils/ErrorClass.js"
+
 
 
 const app = express()
@@ -26,20 +31,25 @@ app.use(express.json({limit:"10kb"}))
 app.use(express.urlencoded({ extended: true, limit: "10kb" }))
 app.use(mongoSanitize())
 
-const limiter = rateLimiter({
-    max: 100,
-    windowMs: 15 * 60 * 1000,
-    message: "Too many requests from this IP, please try again later.",
-})
+// const limiter = rateLimiter({
+//     max: 100,
+//     windowMs: 15 * 60 * 1000,
+//     message: "Too many requests from this IP, please try again later.",
+// })
 
-app.use("/api",limiter)
+// app.use("/api",limiter)
 
 
 //.... your routes are here too ....
+app.use("/api/v1/users",userRouter)
 
+/// Handling 404 routes
+app.use((req, res, next) => {
+   next( new ErrorClass(`Can't find route ${req.originalUrl} on this server!!`,404))
+})
 
 // globalErrorhandler comes in here.....
-// app.use()
+app.use(globalErrorHandler)
 
 
 // errorhandler for only in development

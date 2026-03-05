@@ -34,6 +34,7 @@
     // "noPropertyAccessFromIndexSignature": true,
 
     // Recommended Options
+     "outDir": "./dist",
     "strict": true,
     "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
