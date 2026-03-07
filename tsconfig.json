@@ -9,7 +9,8 @@
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "esnext",
-    "types": [],
+    
+    // "types": [],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -33,6 +34,7 @@
     // "noPropertyAccessFromIndexSignature": true,
 
     // Recommended Options
+     "outDir": "./dist",
     "strict": true,
     "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
