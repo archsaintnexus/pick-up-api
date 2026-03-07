@@ -135,6 +135,10 @@ export const generateInvoice = async (
   try {
     const { shipmentId } = req.params;
 
+    if (!shipmentId) {
+      return next(new ErrorClass("Shipment ID is required", 400));
+    }
+
     const invoice = await createShipmentInvoice(shipmentId);
 
     await createAuditLog({
