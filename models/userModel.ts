@@ -1,107 +1,154 @@
 import mongoose from "mongoose";
 import password from "../services/password.js";
 
-// const userSchema = new mongoose.Schema(
-//   {
-//     fullName: {
-//       type: String,
-//       required: true,
-//       trim: true,
-//     },
-//     email: {
-//       type: String,
-//       required: true,
-//       unique: true,
-//       trim: true,
-//       lowercase: true,
-//     },
-//     companyName: {
-//       type: String,
-//       default: null,
-//       trim: true,
-//     },
-//     companyAddress: {
-//       type: String,
-//       default: null,
-//       trim: true,
-//     },
-//     role: {
-//       type: String,
-//       enum: ["customer", "business", "admin", "driver"],
-//       default: "customer",
-//     },
-//     password: {
-//       type: String,
-//       required: true,
-//       minlength: 8,
-//     },
-//   },
-//   { timestamps: true }
-// );
 
 
 // An interface that describes the properties that are required to create a user.
 
 interface userAttr {
+    fullName: string;
     email: string;
     password: string;
     confirmPassword: string;
+    role: string;
+    companyName?: string | undefined;
+    companyAddress?: string | undefined;
 }
 
 
 // An interface that describes the properties that a user Model has
 interface UserModel extends mongoose.Model<UserDoc> {
-    createUser(attrs: userAttr): UserDoc;
+  createUser(attrs: userAttr): Promise <UserDoc>;
+  findUser(email: string):  Promise<UserDoc | null>;
 }
 
 
 // An interface that describes the properties that a User Document has
 interface UserDoc extends mongoose.Document{
-    email: string;
-    password: string;
-    confirmPassword?: string | undefined;
-    // comparePassword(candidatePassword: string): Promise<boolean>;
+  fullName: string;
+  email: string;
+  password: string;
+  role: string;
+  companyName?: string | undefined;
+  companyAddress?: string | undefined;
+  confirmPassword?: string | undefined;
+  passwordChangedDate?: Date | undefined;
+  tokenVersion?: number;
+  createdAt: Date;
+  updatedAt: Date;
+  comparePassword(userPassword: string): Promise<boolean>;
+  changedPasswordAfter(jwtTimeStamp: number): boolean;
 }
 
 
 
 const userSchema = new mongoose.Schema({
+  fullName: {
+    type: String,
+    required: true,
+    trim:true
+  },
     email: {
         type: String,
-        required:true
+    required: true,
+      trim: true,
+        lowercase:true,
+        unique:true
     },
     password: {
         type: String,
-        required:true
+      required: true,
+      minLength: 8, maxLength: 30
+        
     },
     confirmPassword: {
         type: String,
-        required:true
-    }
+      required: true,
+      minLength: 8,
+      maxLength:30
+    },
+    companyName: {
+            type: String,
+            default: null,
+            trim: true,
+          },
+          companyAddress: {
+            type: String,
+            default: null,
+            trim: true,
+          },
+          role: {
+            type: String,
+            enum: ["customer", "business", "admin", "driver"],
+            default: "customer",
+  },
+  passwordChangedDate: {
+    type: Date,
+    select:false
+  },
+  tokenVersion: {
+    type: Number,
+    default: 0,
+    select:false
+  },
 
+}, {
+  toObject: { virtuals: true },
+  toJSON: { virtuals: true },
+  timestamps:true
+})
+  
+
+
+
+
+  userSchema.statics.createUser = async (attrs: userAttr) => {
+      return await new User(attrs).save()
+  }
+
+userSchema.statics.findUser = (email: string) => {
+    return User.findOne({email})
+  }
+
+
+  userSchema.pre("save", async function (next: mongoose.CallbackWithoutResultAndOptionalError) {
+      if (!this.isModified("password")) return next()
+      
+      this.password = await password.hashPassword(this.password)
+      this.set("confirmPassword",undefined)
+
+      
+
+      next()
 })
 
-userSchema.statics.createUser = (attrs: userAttr) => {
-    return new User(attrs)
+/// to know if the user has changed password
+userSchema.pre("save", async function (next: mongoose.CallbackWithoutResultAndOptionalError) {
+  if (this.isNew || !this.isModified("password")) return next();
+
+  this.set("passwordChangedDate",Date.now()-1000)
+ 
+ next();
+    
+})
+
+
+/// for login purpose 
+userSchema.methods.comparePassword = async function (userPassword:string):Promise<boolean> {
+  return await password.comparePassword(userPassword,this.password)
 }
 
+// To know the validity of the token.. maybe the user has recently changed his password
+userSchema.methods.changedPasswordAfter = function (jwtTimeStamp: number):boolean {
+  if (this.passwordChangedDate) {
+    const passwordTimeStamp = Math.floor(
+      this.passwordChangedDate.getTime() / 1000
+    );
 
-userSchema.pre("save", async function (next: mongoose.CallbackWithoutResultAndOptionalError) {
-    if (!this.isModified("password")) return next()
-    
-    this.password = await password.hashPassword(this.password)
-    this.set("confirmPassword",undefined)
-
-    
-
-    next()
-})
-
-
-userSchema.pre("save", async function (next: mongoose.CallbackWithoutResultAndOptionalError) {
-    
-})
-
+    return jwtTimeStamp < passwordTimeStamp;
+  }
+  return false;
+}
 
 const User = mongoose.model<UserDoc,UserModel>("User", userSchema)
 

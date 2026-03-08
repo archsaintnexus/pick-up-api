@@ -16,7 +16,7 @@ export const createUserSchema = joi.object({
         otherwise:joi.string().optional()
     }),
     role:joi.string().valid("customer","business","admin","driver").default("customer"),
-    password: joi.string().pattern(new RegExp('^[a-zA-Z0-9]{8,30}$')).required().messages({
+    password: joi.string().min(8).max(30).pattern(new RegExp('^[a-zA-Z0-9]{8,30}$')).required().messages({
         "string.pattern.base": "Password must be 8-30 characters and contain only letters and numbers",
       }),
     confirmPassword: joi.any().valid(joi.ref("password")).required().messages({
