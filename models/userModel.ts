@@ -8,8 +8,8 @@ import password from "../services/password.js";
 interface userAttr {
     fullName: string;
     email: string;
-    password: string;
-    confirmPassword: string;
+    password: string ;
+    confirmPassword?: string;
     role: string;
     companyName?: string | undefined;
     companyAddress?: string | undefined;
@@ -102,11 +102,11 @@ const userSchema = new mongoose.Schema({
 
 
 
-  userSchema.statics.createUser = async (attrs: userAttr) => {
-      return await new User(attrs).save()
-  }
+    userSchema.statics.createUser = async (attrs: userAttr) => {
+        return await new User(attrs).save()
+    }
 
-userSchema.statics.findUser = (email: string) => {
+  userSchema.statics.findUser = (email: string) => {
     return User.findOne({email})
   }
 
@@ -152,5 +152,5 @@ userSchema.methods.changedPasswordAfter = function (jwtTimeStamp: number):boolea
 
 const User = mongoose.model<UserDoc,UserModel>("User", userSchema)
 
-
+export type {UserDoc}
 export default User
