@@ -1,6 +1,6 @@
 import express from "express"
 
-import {getMe, login, logOut, protector, register, updateProfile, verifyOtp } from "../controller/authController.js"
+import {getMe, login, logOut, protector, register, updatePassword, updateProfile, verifyOtp } from "../controller/authController.js"
 import validator from "../middleware/validator.js"
 import { createLoginSchema, createUserSchema } from "../SchemaTypes/userSchema.js"
 
@@ -18,6 +18,7 @@ router.use(protector)
 
 router.get("/users/me",getMe)
 router.post("/users/me", updateProfile)
+router.post("/users/updatePassword",updatePassword)
 router.post("/logout",logOut)
 
 export default router

@@ -3,10 +3,13 @@ import User from "../models/userModel.js";
 import ErrorClass from "../utils/ErrorClass.js";
 import jwtToken from "../services/jwt.js";
 import sendToken from "../services/sendToken.js";
+import BodyFilter from "../utils/BodyFilter.js";
+
+
+
+
 
 export async function register(req: Request, res: Response, next: NextFunction) {
-  
-
   const existingUser = await User.findUser(req.body.email)
 
     if (existingUser) {
@@ -82,13 +85,64 @@ export async function protector(req: Request, res: Response, next: NextFunction)
 
 
 export async function getMe(req: Request, res: Response, next: NextFunction) {
+  const user = await User.findById(req.user._id) 
+
+  if (!user) return next(new ErrorClass("User does not exist", 404))
+  
+  
+  res.status(201).json({
+    status: "Success",
+    data: {
+   user
+ }
+  })
+  
+  
   
 }
 
 export async function updateProfile(req: Request, res: Response, next: NextFunction) {
+
+  const data = BodyFilter(req.body, "password", "role","email") /// added this checker here so users can't change their roles and also this route is not for password update so user's can't update password
+
+  const user = await User.findByIdAndUpdate(req.user._id, data, {
+    runValidators: false,
+    new:true
+  })
+
+  if(!user) return next(new ErrorClass("User does not exist",404))
+
+  res.status(200).json({
+    status: "Success",
+    message: "User Profile Updated",
+    data: {
+      user
+    }
+  })
+
   
 }
 
 export async function logOut(req: Request, res: Response, next: NextFunction) {
   
+}
+
+
+export async function updatePassword(req: Request, res: Response, next: NextFunction) {
+  const { currentPassword, password, confirmPassword } = req.body
+  
+  const user = await User.findById(req.user._id)
+
+  if (!user) return next(new ErrorClass("User does not exist", 404))
+  
+  if (!(await user.comparePassword(currentPassword))) return next(new ErrorClass("Incorrect Password", 403))
+  
+  user.password = password
+  user.confirmPassword = confirmPassword
+
+  await user.save()
+
+  sendToken(res,200,user)
+  
+
 }
