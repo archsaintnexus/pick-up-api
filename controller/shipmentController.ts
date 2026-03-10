@@ -8,11 +8,75 @@ import {
   sendPushNotification,
 } from "../services/notificationService.js";
 import { shipmentHistoryQuerySchema } from "../SchemaTypes/shipmentSchema.js";
+import {
+  createBulkPickup,
+  createSinglePickup,
+  estimatedShipmentPrice,
+} from "../services/shipmentService.js";
+
+export const estimatePickupPrice = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { weight, packageType } = req.body;
+    const estimatesPrice = estimatedShipmentPrice(weight, packageType);
+    res.status(200).json({
+      status: "success",
+      data: {
+        estimatesPrice,
+        currency: "NGN",
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createPickup = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const shipment = await createSinglePickup(req.body);
+    res.status(201).json({
+      status: "success",
+      data: {
+        shipment,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createBulkPickups = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    //const userId = req.user.id;
+    const { user, pickups } = req.body;
+    if (!pickups || !Array.isArray(pickups) || pickups.length === 0) {
+      throw new ErrorClass("Pickups array is required", 400);
+    }
+    const { shipments, totalPrice } = await createBulkPickup({ user, pickups });
+
+    res
+      .status(201)
+      .json({ status: "success", data: { shipments, totalPrice } });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const getShipmentHistory = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { error, value } = shipmentHistoryQuerySchema.validate(req.query, {
@@ -71,7 +135,7 @@ export const getShipmentHistory = async (
 export const cancelShipment = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { shipmentId } = req.params;
@@ -85,7 +149,7 @@ export const cancelShipment = async (
 
     if (!["PENDING", "ASSIGNED"].includes(shipment.status)) {
       return next(
-        new ErrorClass("Shipment cannot be cancelled at this stage", 400)
+        new ErrorClass("Shipment cannot be cancelled at this stage", 400),
       );
     }
 
@@ -130,7 +194,7 @@ export const cancelShipment = async (
 export const generateInvoice = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { shipmentId } = req.params;
