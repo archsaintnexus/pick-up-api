@@ -33,7 +33,6 @@ interface UserDoc extends mongoose.Document{
   companyAddress?: string | undefined;
   confirmPassword?: string | undefined;
   passwordChangedDate?: Date | undefined;
-  tokenVersion?: number;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(userPassword: string): Promise<boolean>;
@@ -86,12 +85,6 @@ const userSchema = new mongoose.Schema({
     type: Date,
     select:false
   },
-  tokenVersion: {
-    type: Number,
-    default: 0,
-    select:false
-  },
-
 }, {
   toObject: { virtuals: true },
   toJSON: { virtuals: true },

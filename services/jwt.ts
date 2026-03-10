@@ -2,7 +2,10 @@ import jwt from "jsonwebtoken"
 import type { UserDoc } from "../models/userModel.js"
 import { promisify } from "util"
 
-
+interface JwtPayload {
+    id: string
+    iat: number
+}
 
 class jwtToken {
     static signJwt(data: UserDoc) {
@@ -13,7 +16,8 @@ class jwtToken {
         
     }
 
-    static async verifyJwt(token: string): Promise<any> {
+  
+    static async verifyJwt(token: string): Promise<JwtPayload> {
         const verify = promisify<string,string,any>(jwt.verify)
             return await verify(token,process.env.JWT_SECRET!)
     }
