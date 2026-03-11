@@ -128,6 +128,18 @@ export async function logOut(req: Request, res: Response, next: NextFunction) {
 }
 
 
+export async function forgotPassword(req: Request, res: Response, next: NextFunction) {
+  const { email } = req.body
+  
+  if(!email) return next(new ErrorClass("Email is required",400))
+  
+  const user = await User.findUser(email)
+
+  if(!user) return next(new ErrorClass("User does not exist",404))
+
+}
+
+
 export async function updatePassword(req: Request, res: Response, next: NextFunction) {
   const { currentPassword, password, confirmPassword } = req.body
   
