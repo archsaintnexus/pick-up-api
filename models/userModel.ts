@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import password from "../services/password.js";
+import crypto from "crypto"
 
 
 
@@ -33,11 +34,14 @@ interface UserDoc extends mongoose.Document{
   companyAddress?: string | undefined;
   confirmPassword?: string | undefined;
   passwordChangedDate?: Date | undefined;
-  isEmailVerified?: boolean;
+  isVerified?: boolean;
+  passwordResetToken?: string | undefined;
+  passwordResetExpires?: Date | undefined;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(userPassword: string): Promise<boolean>;
   changedPasswordAfter(jwtTimeStamp: number): boolean;
+  resetPassword(): string;
 }
 
 
@@ -86,7 +90,9 @@ const userSchema = new mongoose.Schema({
     type: Date,
     select:false
   },
-  isEmailVerified: {
+  passwordResetToken: String,
+  passwordResetExpires:Date,
+  isVerified: {
     type: Boolean,
     default: false,
     select:false
@@ -148,6 +154,19 @@ userSchema.methods.changedPasswordAfter = function (jwtTimeStamp: number):boolea
   }
   return false;
 }
+
+
+userSchema.methods.resetPassword = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex")
+  
+  this.passwordResetToken = crypto.createHash("sha256").update(resetToken).digest("hex")
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000
+
+  return resetToken
+
+}
+
 
 const User = mongoose.model<UserDoc,UserModel>("User", userSchema)
 

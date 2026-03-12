@@ -4,6 +4,9 @@ import ErrorClass from "../utils/ErrorClass.js";
 import jwtToken from "../services/jwt.js";
 import sendToken from "../services/sendToken.js";
 import BodyFilter from "../utils/BodyFilter.js";
+import otpService from "../services/otp.js";
+import emailQueue from "../Queues/emailQueue.js";
+import crypto from "crypto";
 
 
 
@@ -25,9 +28,18 @@ export async function register(req: Request, res: Response, next: NextFunction) 
       password: req.body.password,
       confirmPassword:req.body.confirmPassword
     });
-
   
-  sendToken(res,201,user)
+  const otp = await otpService.generateOTP(user._id.toString())
+ 
+ await emailQueue.add("sendOtp", {
+    email: user.email,
+    otp:otp
+  })
+  
+  console.log(otp)
+
+  res.send({})
+  // sendToken(req,res,201,user)
 }
 
 
@@ -43,13 +55,29 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   
   
   
-  sendToken(res,200,user)
+  sendToken(req,res,200,user)
   
 }
 
 
 export async function verifyOtp(req: Request, res: Response, next: NextFunction) {
+  const {email,otp} = req.body
   
+  const user = await User.findUser(email)
+
+  if(!user) return next(new ErrorClass("User does not exist",404))
+
+  if(!(await otpService.verifyOTP(user._id.toString(),otp))) return next(new ErrorClass("Invalid Otp",401))
+
+  
+  user.isVerified = true
+  await user.save()
+
+  res.send({})
+
+  sendToken(req,res,200,user)
+
+
 }
 
 
@@ -71,9 +99,11 @@ export async function protector(req: Request, res: Response, next: NextFunction)
 
   if (!decoded) return next(new ErrorClass("Invalid or expired token.", 401))
 
-  const user = await User.findById(decoded?.id!)
+  const user = await User.findById(decoded.id)
 
   if (!user) return next(new ErrorClass("The user belonging to this token no longer exists.", 401))
+
+  if(!user.isVerified) return next(new ErrorClass("User account not verified.. ",401))
   
   if(user.changedPasswordAfter(decoded?.iat!)) return next(new ErrorClass(  "User recently changed password. Please log in again.",
     401))
@@ -90,7 +120,7 @@ export async function getMe(req: Request, res: Response, next: NextFunction) {
   if (!user) return next(new ErrorClass("User does not exist", 404))
   
   
-  res.status(201).json({
+  res.status(200).json({
     status: "Success",
     data: {
    user
@@ -135,7 +165,37 @@ export async function forgotPassword(req: Request, res: Response, next: NextFunc
   
   const user = await User.findUser(email)
 
-  if(!user) return next(new ErrorClass("User does not exist",404))
+  if (!user) return next(new ErrorClass("User does not exist", 404))
+  
+  const token = user.resetPassword()
+  
+  await user.save({ validateBeforeSave: false })
+
+
+
+  /// currently making use of bullMQ for background jobs
+  
+  try {
+    const resetUrl = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/auth/users/resetPassword/${token}`;
+
+    await emailQueue.add("resetPassword", {
+      email,
+      resetUrl
+    })
+    res.status(200).json({
+      status: "Success",
+      message:"Reset Password Link sent to your email"
+    })
+  } catch (error) {
+    user.passwordResetExpires = undefined;
+    user.passwordResetToken = undefined;
+    await user.save({ validateBeforeSave: false })
+    
+    return next(new ErrorClass("There was an error sending the email. Try again later!",500))
+    
+  }
 
 }
 
@@ -154,7 +214,33 @@ export async function updatePassword(req: Request, res: Response, next: NextFunc
 
   await user.save()
 
-  sendToken(res,200,user)
-  
+  sendToken(req,res,200,user)
 
+}
+
+
+
+export async function resetPassword(req: Request, res: Response, next: NextFunction) {
+
+  const {token} = req.params
+const resetToken = crypto.createHash("sha256").update(token!).digest("hex")
+
+  const user = await User.findOne({
+    passwordResetToken: resetToken,
+    passwordResetExpires: { $gt: Date.now() }
+ 
+  })
+
+
+  if(!user) return next(new ErrorClass("Token is invalid or has expired",400))
+
+  user.password = req.body.password;
+  user.confirmPassword = req.body.confirmPassword;
+  user.passwordResetExpires = undefined;
+  user.passwordResetToken = undefined;
+
+  await user.save()
+
+  sendToken(req,res,200,user)
+  
 }

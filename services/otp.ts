@@ -1,7 +1,7 @@
 import crypto from "crypto"
 import redis from "./redis.js"
 
-class OTP {
+class otpService {
     static async generateOTP(identifier:string) {
         const otp = crypto.randomInt(100000, 999999).toString()
         await redis.set(`otp:${identifier}`,otp,"EX",process.env.OTP_EXPIRES_IN!)
@@ -14,6 +14,8 @@ class OTP {
     
         const storedOtp = await redis.get(`otp:${identifier}`)
 
+        console.log(storedOtp)
+
         if (!storedOtp || storedOtp !== otp) return false 
 
         await redis.del(`otp:${identifier}`)
@@ -23,4 +25,4 @@ class OTP {
     }
 }
 
-export default OTP
+export default otpService

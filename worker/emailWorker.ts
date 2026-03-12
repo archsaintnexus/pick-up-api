@@ -1,15 +1,18 @@
 import { Worker } from "bullmq"
+import EmailService from "../services/Email.js";
 
 
 const emailWorker = new Worker("emailQueue", async (job) => {
     switch (job.name) {
-        case "otp": {
-            
-            break;
+        case "sendOtp": {
+            const {email,otp} = job.data
+                await EmailService.sendOtp(email,otp)
+                    break;
         }
         case "resetPassword": {
-            
-            break;
+            const {email,resetUrl} = job.data
+                await EmailService.sendPasswordResetLink(email,resetUrl)
+                    break;
          }
     }
     
@@ -21,6 +24,7 @@ const emailWorker = new Worker("emailQueue", async (job) => {
 })
 
 
+console.log("Worker is listening for jobs...")
 
 emailWorker.on("completed", (job) => {
     console.log(`Job:${job.id}, completed`)
