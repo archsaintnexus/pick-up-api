@@ -10,17 +10,17 @@ const router = express.Router()
 
 router.post("/auth/register", validator(createUserSchema), register)
 router.post("/auth/login", validator(createLoginSchema), login)
-router.post("/auth/verify-otp", verifyOtp)
-router.post("/auth/users/forgotPassword", forgotPassword)
-router.post("/auth/users/resetPassword/:token",resetPassword)
+router.post("/auth/verifyOtp", verifyOtp)
+router.post("/auth/forgotPassword", forgotPassword)
+router.patch("/auth/resetPassword/:token",resetPassword)
 
 
 router.use(protector)
 
 
-router.get("/users/me",getMe)
-router.post("/users/me", updateProfile)
-router.post("/users/updatePassword",updatePassword)
+router.get("/me",getMe)
+router.patch("/me", updateProfile)
+router.patch("/updatePassword",updatePassword)
 router.post("/logout",logOut)
 
 export default router

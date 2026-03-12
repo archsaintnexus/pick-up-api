@@ -4,6 +4,9 @@ import mongoSanitize from "@exortek/express-mongo-sanitize";
 import morgan from "morgan";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser"
+
+
 
 import globalErrorHandler from "./controller/errorController.js";
 
@@ -29,6 +32,7 @@ if (process.env.NODE_ENV === "development") {
 
 app.use(cors());
 app.use(helmet());
+app.use(cookieParser())
 
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));

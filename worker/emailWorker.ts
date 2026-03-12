@@ -1,6 +1,11 @@
+import dotenv from 'dotenv'
+dotenv.config({ path: '../config.env' })
 import { Worker } from "bullmq"
 import EmailService from "../services/Email.js";
 
+
+
+console.log("RESEND_PASSWORD:", process.env.RESEND_PASSWORD)
 
 const emailWorker = new Worker("emailQueue", async (job) => {
     switch (job.name) {

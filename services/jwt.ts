@@ -8,9 +8,8 @@ interface JwtPayload {
 }
 
 class jwtToken {
-    static signJwt(data: UserDoc) {
-        
-        return jwt.sign({ data }, process.env.JWT_SECRET!, {
+    static signJwt(id: string) {
+        return jwt.sign( {id} , process.env.JWT_SECRET!, {
             expiresIn:process.env.JWT_EXPIRES_IN as any
         })
         

@@ -14,7 +14,7 @@ class otpService {
     
         const storedOtp = await redis.get(`otp:${identifier}`)
 
-        console.log(storedOtp)
+     
 
         if (!storedOtp || storedOtp !== otp) return false 
 

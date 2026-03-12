@@ -36,10 +36,10 @@ export async function register(req: Request, res: Response, next: NextFunction) 
     otp:otp
   })
   
-  console.log(otp)
 
-  res.send({})
-  // sendToken(req,res,201,user)
+
+ 
+  sendToken(req,res,201,user)
 }
 
 
@@ -49,11 +49,14 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   
   if (!email && !password) return next(new ErrorClass("Invalid Credentials .. Provide Credentials to Login", 400))
   
-  const user = await User.findUser( email )
+  const user = await User.findUser(email)
   
+ 
+
+
   if ( !user ||   !(await user.comparePassword(password))) return next(new ErrorClass("Invalid email or password", 401))
   
-  
+  if(!user.isVerified) return next(new ErrorClass("User account not verified.. ",401))
   
   sendToken(req,res,200,user)
   
@@ -67,13 +70,12 @@ export async function verifyOtp(req: Request, res: Response, next: NextFunction)
 
   if(!user) return next(new ErrorClass("User does not exist",404))
 
-  if(!(await otpService.verifyOTP(user._id.toString(),otp))) return next(new ErrorClass("Invalid Otp",401))
+  if(!(await otpService.verifyOTP(user._id.toString(),otp))) return next(new ErrorClass("Invalid Otp or Otp has expired",401))
 
   
   user.isVerified = true
-  await user.save()
+  await user.save({validateBeforeSave:false})
 
-  res.send({})
 
   sendToken(req,res,200,user)
 
@@ -96,6 +98,7 @@ export async function protector(req: Request, res: Response, next: NextFunction)
   if (!token) return next(new ErrorClass("You are not logged in .. Please login and try again", 401))
   
   const decoded = await jwtToken.verifyJwt(token).catch(()=>null)
+
 
   if (!decoded) return next(new ErrorClass("Invalid or expired token.", 401))
 
@@ -178,7 +181,7 @@ export async function forgotPassword(req: Request, res: Response, next: NextFunc
   try {
     const resetUrl = `${req.protocol}://${req.get(
       'host'
-    )}/api/v1/auth/users/resetPassword/${token}`;
+    )}/api/v1/users/auth/resetPassword/${token}`;
 
     await emailQueue.add("resetPassword", {
       email,

@@ -11,7 +11,8 @@ interface userAttr {
     email: string;
     password: string ;
     confirmPassword?: string;
-    role: string;
+  role: string;
+  isVerified: boolean;
     companyName?: string | undefined;
     companyAddress?: string | undefined;
 }
@@ -95,7 +96,6 @@ const userSchema = new mongoose.Schema({
   isVerified: {
     type: Boolean,
     default: false,
-    select:false
   }
 }, {
   toObject: { virtuals: true },

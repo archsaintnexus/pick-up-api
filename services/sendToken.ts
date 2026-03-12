@@ -3,7 +3,7 @@ import type { UserDoc } from "../models/userModel.js"
 import jwtToken from "./jwt.js";
 
 function sendToken(req:Request,res: Response, statusCode: number, userData: UserDoc) {
-  const token = jwtToken.signJwt(userData);
+  const token = jwtToken.signJwt(userData._id.toString());
 
   const cookieOption = {
     expires: new Date(
