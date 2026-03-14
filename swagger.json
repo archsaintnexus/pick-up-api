@@ -1,0 +1,161 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "PickUp Logistics API",
+    "version": "1.0.0",
+    "description": "API documentation for PickUp Logistics backend"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local server"
+    }
+  ],
+  "paths": {
+    "/api/v1/shipments/history/{userId}": {
+      "get": {
+        "summary": "Get shipment history for a user",
+        "tags": ["Shipments"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shipment history retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/shipments/{shipmentId}/cancel": {
+      "patch": {
+        "summary": "Cancel a shipment",
+        "tags": ["Shipments"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shipmentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "example": "Customer changed mind"
+                  }
+                },
+                "required": ["reason"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shipment cancelled successfully"
+          },
+          "400": {
+            "description": "Shipment cannot be cancelled"
+          },
+          "404": {
+            "description": "Shipment not found"
+          }
+        }
+      }
+    },
+    "/api/v1/shipments/{shipmentId}/invoice": {
+      "get": {
+        "summary": "Generate invoice for a shipment",
+        "tags": ["Shipments"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shipmentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice generated successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/shipments": {
+      "get": {
+        "summary": "Get all shipments for admin monitoring",
+        "tags": ["Admin"],
+        "responses": {
+          "200": {
+            "description": "Admin shipment list retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/shipments/{shipmentId}": {
+      "get": {
+        "summary": "Get single shipment for admin",
+        "tags": ["Admin"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shipmentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shipment retrieved successfully"
+          },
+          "404": {
+            "description": "Shipment not found"
+          }
+        }
+      }
+    }
+  }
+}
