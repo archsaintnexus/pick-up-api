@@ -1,9 +1,9 @@
 class ErrorClass extends Error {
-    statusCode: Number;
+    statusCode: number;
     status: string;
-    isOperational: Boolean
+    isOperational: boolean
     
-    constructor(message: string, statusCode: Number) {
+    constructor(message: string, statusCode: number) {
         super(message)
         this.statusCode = statusCode;
         this.status = `${statusCode}`.startsWith("4") ? "Fail" : "Error";

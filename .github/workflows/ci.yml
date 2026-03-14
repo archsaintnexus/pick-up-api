@@ -38,3 +38,7 @@ jobs:
       - name: Run dependency audit
         run: npm audit --audit-level=high
         continue-on-error: true
+
+
+      - name: Run code quality checks
+        run: npm run lint

@@ -1,12 +1,8 @@
-import { Router } from "express";
+import express from "express";
+import { createTracking } from "../controller/shipmentTrackingController.js";
 
+const router = express.Router();
 
-const router = Router();
+router.post("/", createTracking);
 
-// Post
-
-
-// Patch
-
-
-// Get
+export default router;
