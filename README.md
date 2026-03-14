@@ -1,369 +1,260 @@
 # Pick-Up Logistics API
 
-A comprehensive Node.js REST API for managing logistics operations, shipments, and tracking. Built with Express.js and TypeScript, this API provides robust features for handling shipment lifecycle management, user authentication, and real-time tracking capabilities.
+A modern, scalable Node.js API for managing shipment logistics and real-time tracking using Express.js, MongoDB, and Socket.IO.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
-- [Prerequisites](#prerequisites)
 - [Setup](#setup)
-- [Configuration](#configuration)
 - [Usage](#usage)
-- [API Endpoints](#api-endpoints)
+- [API Documentation](#api-documentation)
 - [Project Structure](#project-structure)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Overview
 
-Pick-Up Logistics API is a modern logistics management system designed to streamline shipment operations. It provides complete functionality for:
-
-- User authentication and account management
-- Shipment creation, tracking, and management
-- Admin dashboard for monitoring and controlling shipments
-- Real-time shipment tracking updates
-- Audit logging and invoice generation
-
-The API is production-ready with security features including helmet.js for HTTP headers, CORS support, request sanitization, and rate limiting.
+Pick-Up Logistics is a comprehensive API designed to streamline shipment management and logistics operations. It provides real-time tracking capabilities, user authentication, and administrative controls for managing shipments efficiently. The API is built with TypeScript for type safety and uses MongoDB as the primary data store.
 
 ## Features
 
-✅ **User Management**
-- User registration and authentication
-- Secure password handling
-- User profile management
-
-✅ **Shipment Management**
-- Create and manage shipments
-- Track shipment status in real-time
-- Admin control panel for shipment oversight
-- Shipment history and audit logging
-
-✅ **Tracking System**
-- Real-time shipment tracking
-- Location updates
-- Status notifications
-
-✅ **Security**
-- Helmet.js for HTTP header protection
-- MongoDB data sanitization
-- CORS protection
-- Environment-based configuration
-
-✅ **Developer Experience**
-- TypeScript for type safety
-- Async/await error handling
-- Request validation with Joi
-- Comprehensive error handling
-- Morgan logging
+- **User Management**: Register, authenticate, and manage user accounts
+- **Shipment Management**: Create, update, and track shipments
+- **Real-Time Updates**: Socket.IO integration for live shipment tracking and notifications
+- **Admin Dashboard**: Administrative endpoints for shipment oversight and management
+- **Security**: Helmet.js for HTTP security headers, rate limiting, and MongoDB sanitization
+- **API Documentation**: Integrated Swagger/OpenAPI documentation at `/api-docs`
+- **Error Handling**: Comprehensive error handling with custom error classes
+- **CORS Support**: Cross-origin resource sharing enabled for flexible client integration
+- **Request Logging**: Morgan middleware for HTTP request logging in development
 
 ## Tech Stack
 
-- **Runtime:** Node.js with TypeScript
-- **Framework:** Express.js v4
-- **Database:** MongoDB with Mongoose
-- **Validation:** Joi
-- **Security:** Helmet.js, CORS, Express Mongo Sanitize
-- **Email:** Nodemailer & Resend
-- **Development:** Nodemon, tsx, Morgan
-
-## Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-- **Node.js** v16 or higher
-- **npm** v8 or higher
-- **MongoDB** database (local or MongoDB Atlas cloud)
-- **Git** for version control
+- **Runtime**: Node.js with TypeScript
+- **Framework**: Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Real-Time**: Socket.IO
+- **Validation**: Joi
+- **Security**: Helmet, Express Rate Limit, MongoDB Sanitizer
+- **Documentation**: Swagger UI Express
+- **Email**: Nodemailer and Resend
+- **Development**: Nodemon, tsx, TypeScript
 
 ## Setup
 
-### 1. Clone the Repository
+### Prerequisites
 
-```bash
-git clone <repository-url>
-cd pick-up-api
-```
+- Node.js (v16 or higher)
+- npm or yarn
+- MongoDB account (local or cloud via MongoDB Atlas)
+- Environment variables configured
 
-### 2. Install Dependencies
+### Installation
 
-```bash
-npm install
-```
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd pick-up-api
+   ```
 
-### 3. Configure Environment Variables
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-Create a `config.env` file in the root directory based on `config.env.example`:
+3. **Configure environment variables**
+   ```bash
+   cp config.env.example config.env
+   ```
+   
+   Edit `config.env` with your actual values:
+   ```env
+   PORT=3000
+   NODE_ENV=development
+   DATABASE=mongodb+srv://YOUR_USERNAME:<db_password>@YOUR_CLUSTER.mongodb.net/pickup-logistics?retryWrites=true&w=majority
+   DATABASE_PASSWORD=YOUR_REAL_PASSWORD
+   ```
 
-```bash
-cp config.env.example config.env
-```
+4. **Build the project**
+   ```bash
+   npm run build
+   ```
 
-Edit `config.env` and add your configuration:
+5. **Start the server**
+   ```bash
+   # Development mode (with hot reload)
+   npm run dev
 
-```env
-PORT=3000
-NODE_ENV=development
-DATABASE=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/pickup-logistics?retryWrites=true&w=majority
-DATABASE_PASSWORD=YOUR_REAL_PASSWORD
-```
+   # Production mode
+   npm run prod
 
-### 4. MongoDB Setup
+   # Standard start (requires build first)
+   npm start
+   ```
 
-#### Option A: MongoDB Atlas (Cloud)
-
-1. Create an account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Create a cluster
-3. Create a database user with credentials
-4. Get your connection string
-5. Replace `YOUR_USERNAME`, `YOUR_PASSWORD`, and `YOUR_CLUSTER` in your `config.env`
-
-#### Option B: Local MongoDB
-
-1. Install MongoDB locally
-2. Update your `DATABASE` URL to: `mongodb://localhost:27017/pickup-logistics`
-
-### 5. Verify Installation
-
-```bash
-npm run build
-```
-
-This should compile TypeScript without errors.
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | Server port | 3000 |
-| `NODE_ENV` | Environment mode | development |
-| `DATABASE` | MongoDB connection string | - |
-| `DATABASE_PASSWORD` | MongoDB password | - |
-
-### Request Limits
-
-- JSON payload limit: **10kb**
-- URL-encoded payload limit: **10kb**
-
-### Middleware Stack
-
-The API includes the following middleware:
-
-1. **CORS** - Cross-Origin Resource Sharing
-2. **Helmet** - HTTP header security
-3. **Morgan** - Request logging (development only)
-4. **Express JSON Parser** - Parse JSON requests
-5. **Express URL Encoder** - Parse URL-encoded requests
-6. **Mongo Sanitize** - Prevent NoSQL injection
-7. **Error Handler** - Centralized error handling
+The API will be available at `http://localhost:3000` (or your configured PORT).
 
 ## Usage
 
-### Development Mode
-
-Start the development server with hot-reload:
+### Starting the Server
 
 ```bash
+# Development with nodemon and hot reload
 npm run dev
-```
 
-The API will be available at `http://localhost:3000`
-
-### Production Mode
-
-Start the production server:
-
-```bash
+# Production environment
 npm run prod
+
+# Build and run
+npm run build && npm start
 ```
 
-### Build
+### API Endpoints
 
-Compile TypeScript to JavaScript:
+The API provides the following main endpoint groups:
 
-```bash
-npm run build
+#### Users API
+- **Base URL**: `/api/v1/users`
+- User registration, authentication, and profile management
+
+#### Shipments API
+- **Base URL**: `/api/v1/shipments`
+- Create, retrieve, and manage shipments
+- Real-time tracking updates via Socket.IO
+
+#### Admin API
+- **Base URL**: `/api/v1/admin`
+- Administrative shipment management and oversight
+
+### Real-Time Features
+
+The API uses Socket.IO for real-time communication:
+
+```typescript
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:3000');
+
+// Listen for shipment updates
+socket.on('shipmentUpdate', (data) => {
+  console.log('Shipment updated:', data);
+});
+
+// Emit tracking requests
+socket.emit('trackShipment', { shipmentId: '123' });
 ```
 
-### Run Compiled Code
+### API Documentation
 
-Start the compiled server:
-
-```bash
-npm start
+Interactive API documentation is available at:
 ```
-
-## API Endpoints
-
-### Base URL
-```
-http://localhost:3000/api/v1
+http://localhost:3000/api-docs
 ```
 
-### Users
-```
-POST   /users/register          - Register a new user
-POST   /users/login             - Login user
-GET    /users/:id               - Get user details
-PUT    /users/:id               - Update user profile
-DELETE /users/:id               - Delete user account
-```
-
-### Shipments
-```
-POST   /shipments               - Create new shipment
-GET    /shipments               - List user shipments
-GET    /shipments/:id           - Get shipment details
-PUT    /shipments/:id           - Update shipment
-DELETE /shipments/:id           - Cancel shipment
-GET    /shipments/:id/tracking  - Get shipment tracking info
-```
-
-### Admin Shipments
-```
-GET    /admin/shipments         - List all shipments
-PUT    /admin/shipments/:id     - Update shipment status
-GET    /admin/shipments/:id     - Get shipment details
-DELETE /admin/shipments/:id     - Delete shipment
-```
-
-### Shipment Tracking
-```
-GET    /shipments/:id/tracking  - Get tracking details
-POST   /shipments/:id/tracking  - Create tracking update
-```
-
-For detailed API documentation, refer to the controller files in the `controller/` directory.
+This Swagger UI interface allows you to explore all available endpoints, view request/response schemas, and test endpoints directly.
 
 ## Project Structure
 
 ```
 pick-up-api/
-├── controller/              # Route handlers and business logic
-│   ├── authController.ts
-│   ├── shipmentController.ts
-│   ├── adminShipmentController.ts
-│   ├── shipmentTrackingController.ts
-│   └── errorController.ts
-├── routes/                  # API route definitions
+├── app.ts                 # Express app configuration
+├── server.ts              # Server entry point
+├── db.ts                  # MongoDB connection setup
+├── socket.ts              # Socket.IO configuration
+├── config.env             # Environment variables (git ignored)
+├── tsconfig.json          # TypeScript configuration
+├── swagger.json           # Swagger/OpenAPI documentation
+│
+├── controller/            # Route handlers and business logic
+│   └── errorController.ts # Global error handling
+│
+├── routes/                # API route definitions
 │   ├── userRoute.ts
 │   ├── shipmentRoute.ts
-│   ├── adminShipmentRoute.ts
-│   └── shipmentTrackingRoute.ts
-├── models/                  # MongoDB schema definitions
-│   ├── userModel.ts
-│   ├── shipmentModel.ts
-│   ├── shipmentTrackingModel.ts
-│   ├── invoiceModel.ts
-│   └── auditLogModel.ts
-├── services/                # Business logic services
-├── middleware/              # Express middleware
-├── utils/                   # Utility functions and classes
-├── constants/               # Application constants
-├── SchemaTypes/             # TypeScript schema type definitions
-├── app.ts                   # Express app configuration
-├── server.ts                # Server entry point
-├── db.ts                    # Database connection
-├── tsconfig.json            # TypeScript configuration
-├── package.json             # Dependencies and scripts
-└── config.env               # Environment variables (not in git)
+│   └── adminShipmentRoute.ts
+│
+├── models/                # Mongoose schemas and models
+│
+├── services/              # Business logic and external integrations
+│
+├── middleware/            # Custom Express middleware
+│
+├── events/                # Event listeners and handlers
+│   └── registerEventListeners.ts
+│
+├── SchemaTypes/           # TypeScript types for schemas
+│
+├── utils/                 # Utility functions
+│   └── ErrorClass.ts      # Custom error class
+│
+├── constants/             # Application constants
+│
+└── node_modules/          # Dependencies (git ignored)
 ```
 
 ## Contributing
 
-We welcome contributions from the community! Please follow these guidelines:
+We welcome contributions to the Pick-Up Logistics API! Please follow these guidelines:
 
 ### Getting Started
 
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/pick-up-api.git
-   cd pick-up-api
-   ```
-3. **Create a feature branch**:
+1. **Fork the repository** and clone your fork
+2. **Create a feature branch**
    ```bash
    git checkout -b feature/your-feature-name
    ```
+3. **Make your changes** and ensure code quality
 
-### Making Changes
+### Code Standards
 
-1. **Follow TypeScript best practices**
-   - Use strict typing
-   - Avoid `any` types
-   - Keep functions focused and reusable
+- **Language**: TypeScript with strict mode enabled
+- **Style**: Follow existing code conventions
+- **Type Safety**: All functions and variables should have proper TypeScript types
+- **Error Handling**: Use the custom `ErrorClass` for consistent error management
+- **Validation**: Use Joi for request validation
 
-2. **Code Style**
-   - Use consistent indentation (2 spaces)
-   - Follow existing naming conventions
-   - Write clear, descriptive variable and function names
+### Before Submitting a Pull Request
 
-3. **Testing**
-   - Test your changes thoroughly
-   - Ensure existing functionality is not broken
-   - Add test cases if test suite exists
-
-4. **Commit Messages**
-   - Write clear, descriptive commit messages
-   - Use present tense ("Add feature" not "Added feature")
-   - Reference related issues or pull requests
-
-   Example:
-   ```
-   Add user email verification endpoint
-   
-   - Implement email verification logic
-   - Add JWT token generation for verification
-   - Update user model with verification status
-   ```
-
-### Submitting Changes
-
-1. **Push your branch** to your fork:
+1. **Test your changes**
    ```bash
-   git push origin feature/your-feature-name
+   npm run build
    ```
 
-2. **Create a Pull Request**
-   - Provide a clear title and description
-   - Reference any related issues (#123)
-   - Explain the changes and why they're needed
-   - Ensure all tests pass
+2. **Verify the API still starts correctly**
+   ```bash
+   npm run dev
+   ```
 
-3. **Code Review**
-   - Be open to feedback
-   - Make requested changes promptly
-   - Discuss any concerns or questions
+3. **Check for TypeScript errors**
+   ```bash
+   npx tsc --noEmit
+   ```
+
+4. **Format and review your code** for consistency and clarity
+
+### Pull Request Process
+
+1. Update the README if your changes introduce new features or configuration
+2. Clearly describe the changes in your pull request
+3. Reference any related issues
+4. Ensure all checks pass before requesting review
 
 ### Reporting Issues
 
-When reporting bugs:
-- Provide a clear title and description
-- Include steps to reproduce
-- Provide expected vs actual behavior
-- Include relevant error messages or logs
-- Mention your environment (Node version, OS, etc.)
-
-### Feature Requests
-
-When suggesting new features:
-- Clearly describe the feature
-- Explain the use case and benefits
-- Provide examples if possible
-- Consider backward compatibility
+When reporting issues, please include:
+- A clear description of the problem
+- Steps to reproduce the issue
+- Expected vs. actual behavior
+- Your environment details (Node version, OS, etc.)
 
 ## License
 
-This project is licensed under the ISC License. See LICENSE file for details.
+This project is licensed under the ISC License. See the package.json for more details.
 
 ---
 
-## Support
+**Maintained by**: Your Team Name
 
-For issues, questions, or suggestions, please open an issue on GitHub or contact the development team.
-
-**Happy coding!** 🚀
+For questions or support, please open an issue on the repository or contact the development team.
