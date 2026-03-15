@@ -30,7 +30,7 @@ describe("Generate Invoice Endpoint", () => {
     const user = await User.create({
       fullName: "Wisdom Shaibu",
       email: "wisdom@test.com",
-      password: "Password1",
+      password: "examplepassword",
       role: "customer",
     });
 
