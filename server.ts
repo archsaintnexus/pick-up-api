@@ -5,7 +5,6 @@ import connectDB from './db.js';
 import { Server } from 'socket.io';
 
 
-
 process.on("uncaughtException", (err) => {
     console.log("UNCAUGHT EXCEPTION... SHUTTING DOWN!!!")
     if (err instanceof Error) {
@@ -44,7 +43,10 @@ process.on("unhandledRejection", (err) => {
 
 // Socket Connection
 export const io = new Server(server, {
-    cors: { origin: "*" }
+    cors: { 
+        origin: "*" ,
+        methods: ["GET", "POST"]
+    }
 })
 
 io.on("connection", (socket) => {

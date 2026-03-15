@@ -32,7 +32,7 @@ export const createTracking = async (req: Request, res: Response, next: NextFunc
 
         const socketRoomId = `tracking_${trackingNumber}`;
 
-        const existingTracking = await ShipmentTracking.findOne({ shipmentId });
+        const existingTracking = await ShipmentTracking.findOne({ trackingNumber });
 
         if (existingTracking) {
             return next(new ErrorClass("Tracking already exists for this shipment", 409));
@@ -83,13 +83,16 @@ export const updateStatus = async (req: Request, res: Response, next: NextFuncti
             return next(new ErrorClass("use the /pod endpoint to mark as delivered", 400));
         }
 
-        const existingStatus = await ShipmentTracking.findOne({
-            currentStatus: status
-        });
+       const existingTracking = await ShipmentTracking.findOne({ trackingNumber });
 
-        if(existingStatus){
-            return next(new ErrorClass("This Status is already stored", 409));
+        if (!existingTracking) {
+            return next(new ErrorClass("Tracking not found", 404));
         }
+
+        if (existingTracking.currentStatus === status) {
+            return next(new ErrorClass("Shipment is already at this status", 409));
+        }
+        
 
 
         const statusUpdate = await ShipmentTracking.findOneAndUpdate(
