@@ -31,7 +31,7 @@
     "mongoose": "^8.23.0",
     "morgan": "^1.10.0",
     "node-tsc": "^0.0.14",
-    "nodemailer": "^6.9.13",
+    "nodemailer": "^8.0.2",
     "resend": "^6.9.3",
     "response-time": "^2.3.2",
     "socket.io": "^4.8.3",
