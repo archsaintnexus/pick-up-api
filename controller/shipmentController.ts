@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import Shipment from "../models/shipmentModel.js";
+import User from "../models/userModel.js";
 import ErrorClass from "../utils/ErrorClass.js";
 import { createShipmentInvoice } from "../services/invoiceService.js";
 import { shipmentHistoryQuerySchema } from "../SchemaTypes/shipmentSchema.js";
@@ -9,6 +10,69 @@ type PopulatedUser = {
   _id: string;
   email: string;
   fullName?: string;
+};
+
+const generateShipmentCode = async () => {
+  let shipmentCode = "";
+  let codeExists = true;
+
+  while (codeExists) {
+    shipmentCode = `PU-${Date.now()}-${Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0")}`;
+    codeExists = Boolean(await Shipment.exists({ shipmentCode }));
+  }
+
+  return shipmentCode;
+};
+
+export const createShipment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {
+      userId,
+      pickupAddress,
+      dropoffAddress,
+      packageType,
+      pickupWindowStart,
+      pickupWindowEnd,
+      weight,
+      price,
+      currency,
+    } = req.body;
+
+    const user = await User.findById(userId).select("_id");
+
+    if (!user) {
+      return next(new ErrorClass("User not found", 404));
+    }
+
+    const shipment = await Shipment.create({
+      shipmentCode: await generateShipmentCode(),
+      user: user._id,
+      pickupAddress,
+      dropoffAddress,
+      packageType,
+      pickupWindowStart,
+      pickupWindowEnd,
+      weight,
+      price,
+      currency,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Shipment created successfully",
+      data: {
+        shipment,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const getShipmentHistory = async (

@@ -18,6 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "@exortek/express-mongo-sanitize": "^2.0.1",
+    "@types/pdfkit": "^0.17.5",
     "colors": "^1.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -32,6 +33,7 @@
     "morgan": "^1.10.0",
     "node-tsc": "^0.0.14",
     "nodemailer": "^8.0.2",
+    "pdfkit": "^0.18.0",
     "resend": "^6.9.3",
     "response-time": "^2.3.2",
     "socket.io": "^4.8.3",
