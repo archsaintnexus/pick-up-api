@@ -6,8 +6,10 @@ export default [
   {
     ignores: ["dist/**", "node_modules/**"],
   },
+
   js.configs.recommended,
   ...tseslint.configs.recommended,
+
   {
     files: ["**/*.ts"],
     languageOptions: {
@@ -18,6 +20,14 @@ export default [
         ...globals.node,
       },
     },
-    rules: {},
+  },
+
+  {
+    files: ["*.config.cjs", "*.config.js", "jest.config.cjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
   },
 ];
