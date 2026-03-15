@@ -3,9 +3,7 @@ dotenv.config({ path: './config.env' })
 import app from './app.js';
 import connectDB from './db.js';
 import { Server } from 'socket.io';
-import dns from "node:dns/promises";
 
-dns.setServers(["1.1.1.1"]);
 
 
 process.on("uncaughtException", (err) => {
