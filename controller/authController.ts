@@ -1,15 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 import User from "../models/userModel.js";
 import ErrorClass from "../utils/ErrorClass.js";
-import jwtToken from "../services/jwt.js";
 import sendToken from "../services/sendToken.js";
-import BodyFilter from "../utils/BodyFilter.js";
 import otpService from "../services/otp.js";
 import emailQueue from "../Queues/emailQueue.js";
 import crypto from "crypto";
-
-
-
 
 
 export async function register(req: Request, res: Response, next: NextFunction) {
@@ -30,16 +25,23 @@ export async function register(req: Request, res: Response, next: NextFunction) 
     });
   
   const otp = await otpService.generateOTP(user._id.toString())
+  
  
  await emailQueue.add("sendOtp", {
     email: user.email,
     otp:otp
+ }, {
+   attempts: 5,
+   backoff: {
+     type: "exponential",
+     delay:5000 // restarts every 5 second
+   }
   })
   
-
-
- 
-  sendToken(req,res,201,user)
+  res.status(201).json({
+    status: "Success",
+    message:"An OTP has been sent to your email."
+  })
 }
 
 
@@ -47,18 +49,15 @@ export async function register(req: Request, res: Response, next: NextFunction) 
 export async function login(req: Request, res: Response, next: NextFunction) {
   const { email, password } = req.body
   
-  if (!email && !password) return next(new ErrorClass("Invalid Credentials .. Provide Credentials to Login", 400))
+  if (!email || !password) return next(new ErrorClass("Invalid Credentials .. Provide Credentials to Login", 400))
   
   const user = await User.findUser(email)
-  
- 
-
-
   if ( !user ||   !(await user.comparePassword(password))) return next(new ErrorClass("Invalid email or password", 401))
+  if (!user.isActive) return next(new ErrorClass("User does not exist",404))
+  if (!user.isVerified) return next(new ErrorClass("User account not verified.. ", 401))
+
   
-  if(!user.isVerified) return next(new ErrorClass("User account not verified.. ",401))
-  
-  sendToken(req,res,200,user)
+  sendToken(req,res,200,user,"Login Successful")
   
 }
 
@@ -68,95 +67,40 @@ export async function verifyOtp(req: Request, res: Response, next: NextFunction)
   
   const user = await User.findUser(email)
 
-  if(!user) return next(new ErrorClass("User does not exist",404))
+  if (!user || !user.isActive) return next(new ErrorClass("User does not exist", 404))
+  
+  if(user.isVerified) return next(new ErrorClass("User is already verified. Proceed to Login Page",400))
 
   if(!(await otpService.verifyOTP(user._id.toString(),otp))) return next(new ErrorClass("Invalid Otp or Otp has expired",401))
 
+  
+  await emailQueue.add("email_verified/account_verified", {
+    email: user.email,
+    fullName:user.fullName
+  })
   
   user.isVerified = true
   await user.save({validateBeforeSave:false})
 
 
-  sendToken(req,res,200,user)
+  sendToken(req,res,200,user,"Your Email has been verified successfully..")
 
 
 }
 
 
-export async function protector(req: Request, res: Response, next: NextFunction) {
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization?.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization?.split(" ")[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
-  }
-
-  
-  if (!token) return next(new ErrorClass("You are not logged in .. Please login and try again", 401))
-  
-  const decoded = await jwtToken.verifyJwt(token).catch(()=>null)
-
-
-  if (!decoded) return next(new ErrorClass("Invalid or expired token.", 401))
-
-  const user = await User.findById(decoded.id)
-
-  if (!user) return next(new ErrorClass("The user belonging to this token no longer exists.", 401))
-
-  if(!user.isVerified) return next(new ErrorClass("User account not verified.. ",401))
-  
-  if(user.changedPasswordAfter(decoded?.iat!)) return next(new ErrorClass(  "User recently changed password. Please log in again.",
-    401))
-
-  
-  req.user = user;
-  next()
-}
-
-
-export async function getMe(req: Request, res: Response, next: NextFunction) {
-  const user = await User.findById(req.user._id) 
-
-  if (!user) return next(new ErrorClass("User does not exist", 404))
-  
-  
-  res.status(200).json({
-    status: "Success",
-    data: {
-   user
- }
-  })
-  
-  
-  
-}
-
-export async function updateProfile(req: Request, res: Response, next: NextFunction) {
-
-  const data = BodyFilter(req.body, "password", "role","email") /// added this checker here so users can't change their roles and also this route is not for password update so user's can't update password
-
-  const user = await User.findByIdAndUpdate(req.user._id, data, {
-    runValidators: false,
-    new:true
-  })
-
-  if(!user) return next(new ErrorClass("User does not exist",404))
-
-  res.status(200).json({
-    status: "Success",
-    message: "User Profile Updated",
-    data: {
-      user
-    }
-  })
-
-  
-}
 
 export async function logOut(req: Request, res: Response, next: NextFunction) {
+  res.cookie("jwt", "loggedOut", {
+    httpOnly: true,
+    expires:new Date(0),
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+  res.status(200).json({
+    status: "Success",
+    message: "Logged out Successfully",
+  });
   
 }
 
@@ -174,10 +118,6 @@ export async function forgotPassword(req: Request, res: Response, next: NextFunc
   
   await user.save({ validateBeforeSave: false })
 
-
-
-  /// currently making use of bullMQ for background jobs
-  
   try {
     const resetUrl = `${req.protocol}://${req.get(
       'host'
@@ -206,19 +146,64 @@ export async function forgotPassword(req: Request, res: Response, next: NextFunc
 export async function updatePassword(req: Request, res: Response, next: NextFunction) {
   const { currentPassword, password, confirmPassword } = req.body
   
-  const user = await User.findById(req.user._id)
+  const user = (await User.findById(req.user._id).select("+password"))!
 
-  if (!user) return next(new ErrorClass("User does not exist", 404))
-  
+  console.log(user)
+
   if (!(await user.comparePassword(currentPassword))) return next(new ErrorClass("Incorrect Password", 403))
   
   user.password = password
   user.confirmPassword = confirmPassword
 
+  await emailQueue.add("updatePasswordMail", {
+    email: user.email
+ }, {
+   attempts: 5,
+   backoff: {
+     type: "exponential",
+     delay:5000 // restarts every 5 second
+   }
+  })
+  
+
   await user.save()
 
-  sendToken(req,res,200,user)
+  sendToken(req,res,200,user,"Password Updated Successfully")
 
+}
+
+
+export async function resendOtp(req: Request, res: Response, next: NextFunction) {
+
+  const { email } = req.body
+  
+  const user = await User.findUser(email)
+
+  if (!user || !user.isActive) return next(new ErrorClass("User does not exist..", 404))
+  if(user.isVerified) return next(new ErrorClass("User is already verified. Proceed to Login Page",400))
+  
+    const otp = await otpService.generateOTP(user._id.toString())
+ 
+    await emailQueue.add("sendOtp", {
+       email: user.email,
+       otp:otp
+    }, {
+      attempts: 5,
+      backoff: {
+        type: "exponential",
+        delay:5000 // restarts every 5 second
+      }
+     })
+     
+   
+   
+    
+     res.status(200).json({
+      status: "Success",
+      message: "OTP resent to your email."
+    })
+  
+  
 }
 
 
@@ -230,7 +215,7 @@ const resetToken = crypto.createHash("sha256").update(token!).digest("hex")
 
   const user = await User.findOne({
     passwordResetToken: resetToken,
-    passwordResetExpires: { $gt: Date.now() }
+    passwordResetExpires: { $gt: Date.now() },
  
   })
 
@@ -242,8 +227,21 @@ const resetToken = crypto.createHash("sha256").update(token!).digest("hex")
   user.passwordResetExpires = undefined;
   user.passwordResetToken = undefined;
 
+  await emailQueue.add("resetPasswordMail", {
+    email: user.email
+ }, {
+   attempts: 5,
+   backoff: {
+     type: "exponential",
+     delay:5000 // restarts every 5 second
+   }
+  })
+  
+
   await user.save()
 
-  sendToken(req,res,200,user)
+  sendToken(req,res,200,user,"Password Reset Successful")
   
 }
+
+

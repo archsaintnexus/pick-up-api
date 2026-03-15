@@ -11,8 +11,7 @@ interface userAttr {
     email: string;
     password: string ;
     confirmPassword?: string;
-  role: string;
-  isVerified: boolean;
+    role: string;
     companyName?: string | undefined;
     companyAddress?: string | undefined;
 }
@@ -36,6 +35,7 @@ interface UserDoc extends mongoose.Document{
   confirmPassword?: string | undefined;
   passwordChangedDate?: Date | undefined;
   isVerified?: boolean;
+  isActive?: boolean;
   passwordResetToken?: string | undefined;
   passwordResetExpires?: Date | undefined;
   createdAt: Date;
@@ -63,6 +63,7 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
       required: true,
+      select:false,
       minLength: 8, maxLength: 30
         
     },
@@ -96,6 +97,10 @@ const userSchema = new mongoose.Schema({
   isVerified: {
     type: Boolean,
     default: false,
+  },
+  isActive: {
+    type: Boolean,
+    default:true
   }
 }, {
   toObject: { virtuals: true },
@@ -112,9 +117,14 @@ const userSchema = new mongoose.Schema({
     }
 
   userSchema.statics.findUser = (email: string) => {
-    return User.findOne({email})
+    return User.findOne({email}).select("+password")
   }
 
+userSchema.pre(/^find/, function (this:mongoose.Query<any,any>, next: mongoose.CallbackWithoutResultAndOptionalError) {
+  this.find({ isActive: { $ne: false } })
+  
+  next()
+  })
 
   userSchema.pre("save", async function (next: mongoose.CallbackWithoutResultAndOptionalError) {
       if (!this.isModified("password")) return next()

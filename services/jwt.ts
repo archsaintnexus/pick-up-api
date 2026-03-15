@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken"
-import type { UserDoc } from "../models/userModel.js"
 import { promisify } from "util"
 
 interface JwtPayload {

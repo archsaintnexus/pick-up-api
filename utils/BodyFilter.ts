@@ -4,7 +4,7 @@ function BodyFilter(data: any, ...field: string[]) {
   
     
     Object.keys(data).forEach((item) => {
-        if (!field.includes(item)) newObj[item] = data[item]
+        if (field.includes(item)) newObj[item] = data[item]
     })
 
     return newObj;

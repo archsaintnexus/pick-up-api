@@ -5,7 +5,7 @@ import EmailService from "../services/Email.js";
 
 
 
-console.log("RESEND_PASSWORD:", process.env.RESEND_PASSWORD)
+
 
 const emailWorker = new Worker("emailQueue", async (job) => {
     switch (job.name) {
@@ -18,7 +18,27 @@ const emailWorker = new Worker("emailQueue", async (job) => {
             const {email,resetUrl} = job.data
                 await EmailService.sendPasswordResetLink(email,resetUrl)
                     break;
-         }
+        }
+        case "email_verified/account_verified": {
+            const { email,fullName } = job.data
+            
+            await EmailService.sendWelcomeEmail(email,fullName)
+            break;
+        }
+            
+        case "updatePasswordMail": {
+            const { email } = job.data
+            
+            await EmailService.sendUpdatePasswordMail(email)
+            break;
+        }
+            
+        case "resetPasswordMail": {
+            const { email } = job.data
+            
+            await EmailService.sendResetPasswordConfirmEmail(email)
+            break;
+            }
     }
     
 }, {
