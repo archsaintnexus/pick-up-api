@@ -4,11 +4,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 let mongoServer: MongoMemoryServer;
 
 export const connectTestDB = async () => {
-  mongoServer = await MongoMemoryServer.create({
-    instance: {
-      launchTimeout: 30000,
-    },
-  });
+  mongoServer = await MongoMemoryServer.create();
   const mongoUri = mongoServer.getUri();
 
   await mongoose.connect(mongoUri);

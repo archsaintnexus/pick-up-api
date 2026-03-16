@@ -38,14 +38,6 @@ const shipmentSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    pickupWindowStart: {
-      type: Date,
-      default: null,
-    },
-    pickupWindowEnd: {
-      type: Date,
-      default: null,
-    },
     weight: {
       type: Number,
       required: true,
