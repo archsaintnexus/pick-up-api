@@ -10,7 +10,7 @@ const router = express.Router()
 
 
 
-
+// this route is ot accessible to drivers and business also  users that aren't logged in aren't allowed here
 router.use(protector,rbac("customer"))
 
 router.route("/").get(getAllAddress).post(validator(createAddressSchema),createAddress)

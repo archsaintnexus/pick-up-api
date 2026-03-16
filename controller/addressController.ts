@@ -71,6 +71,7 @@ export async function updateAddress(req: Request, res: Response, next: NextFunct
         new:true,runValidators:true
     })
 
+
     if (!address) return next(new ErrorClass("Address not found", 404))
     
     res.status(200).json({
@@ -120,16 +121,18 @@ export async function deleteAddress(req: Request, res: Response, next: NextFunct
 
 
 export async function getAllAddress(req: Request, res: Response, next: NextFunction) {
-    const address = await Address.find({
+    const addresses = await Address.find({
         user:req.user._id
-    })
+    }).sort({isDefault:-1})
 
-    if (!address) return next(new ErrorClass("Address not found", 404))
+
+    if (addresses.length === 0) return next(new ErrorClass("No addresses found", 404))
     
     res.status(200).json({
         status: "Success",
+        total:addresses.length,
         data: {
-            address
+            addresses
         }
     })
 }

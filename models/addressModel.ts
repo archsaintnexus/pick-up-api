@@ -1,7 +1,7 @@
 
 import mongoose from "mongoose";
 
-
+/// Interface that describes the properties that are used to create an address
 interface AddressAttr {
     user: string;
     street: string;
@@ -11,7 +11,7 @@ interface AddressAttr {
     isDefault:boolean
 }
 
-
+// Interface that describes the properties that an address document has
 interface AddressDoc extends mongoose.Document{
     user: string;
     street: string;
@@ -20,6 +20,9 @@ interface AddressDoc extends mongoose.Document{
     label: string,
     isDefault:boolean   
 }
+
+
+/// An interface that describes the properties an address Model has
 
 interface AddressModel extends mongoose.Model<AddressDoc>{
     createAddress(attrs:AddressAttr):Promise<AddressDoc>
@@ -33,6 +36,11 @@ const addressSchema = new mongoose.Schema({
         required:true
     },
     street: {
+        type: String,
+        required: true,
+        trim:true
+    },
+    city: {
         type: String,
         required: true,
         trim:true
