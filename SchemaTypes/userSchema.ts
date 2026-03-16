@@ -12,8 +12,18 @@ export const createUserSchema = joi.object({
     }),
     companyAddress: joi.when("role", {
         is: "business",
-        then: joi.string().required(),
-        otherwise:joi.string().optional()
+        then: joi.object({
+            street: joi.string().required(),
+            city: joi.string().required(),
+            state: joi.string().required(),
+            country: joi.string().required(),
+        }).required(),
+        otherwise: joi.object({
+            street: joi.string().optional(),
+            city: joi.string().optional(),
+            state: joi.string().optional(),
+            country: joi.string().optional(),
+        }).optional()
     }),
     role:joi.string().valid("customer","business","admin","driver").default("customer"),
     password: joi.string().min(8).max(30).pattern(new RegExp('^[a-zA-Z0-9]{8,30}$')).required().messages({

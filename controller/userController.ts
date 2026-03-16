@@ -14,7 +14,7 @@ export async function deleteAccount(req: Request, res: Response,next:NextFunctio
 
   user.isActive = false
   await user.save({validateBeforeSave:false})
-res.cookie("jwt","",{ httpOnly: true, expires: new Date(0) })
+   res.cookie("jwt","",{ httpOnly: true, expires: new Date(0) })
 
     res.status(200).json({
         status: "Success",

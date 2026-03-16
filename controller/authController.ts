@@ -148,7 +148,7 @@ export async function updatePassword(req: Request, res: Response, next: NextFunc
   
   const user = (await User.findById(req.user._id).select("+password"))!
 
-  console.log(user)
+
 
   if (!(await user.comparePassword(currentPassword))) return next(new ErrorClass("Incorrect Password", 403))
   
@@ -209,9 +209,8 @@ export async function resendOtp(req: Request, res: Response, next: NextFunction)
 
 
 export async function resetPassword(req: Request, res: Response, next: NextFunction) {
-
-  const {token} = req.params
-const resetToken = crypto.createHash("sha256").update(token!).digest("hex")
+ const {token} = req.params
+ const resetToken = crypto.createHash("sha256").update(token!).digest("hex")
 
   const user = await User.findOne({
     passwordResetToken: resetToken,

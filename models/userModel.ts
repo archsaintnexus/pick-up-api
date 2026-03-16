@@ -13,7 +13,12 @@ interface userAttr {
     confirmPassword?: string;
     role: string;
     companyName?: string | undefined;
-    companyAddress?: string | undefined;
+    companyAddress?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      country?: string;
+  }
 }
 
 
@@ -31,11 +36,17 @@ interface UserDoc extends mongoose.Document{
   password: string;
   role: string;
   companyName?: string | undefined;
-  companyAddress?: string | undefined;
+  companyAddress?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+}
   confirmPassword?: string | undefined;
   passwordChangedDate?: Date | undefined;
   isVerified?: boolean;
   isActive?: boolean;
+  profileCompleted?: boolean;
   passwordResetToken?: string | undefined;
   passwordResetExpires?: Date | undefined;
   createdAt: Date;
@@ -79,9 +90,10 @@ const userSchema = new mongoose.Schema({
             trim: true,
           },
           companyAddress: {
-            type: String,
-            default: null,
-            trim: true,
+            street: { type: String, trim: true },
+            city: { type: String, trim: true },
+            state: { type: String, trim: true },
+            country: { type: String, trim: true },
           },
           role: {
             type: String,
@@ -101,6 +113,10 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default:true
+  },
+  profileCompleted: {
+    type: Boolean,
+    default:false
   }
 }, {
   toObject: { virtuals: true },
@@ -112,11 +128,11 @@ const userSchema = new mongoose.Schema({
 
 
 
-    userSchema.statics.createUser = async (attrs: userAttr) => {
+userSchema.statics.createUser = async (attrs: userAttr) => {
         return await new User(attrs).save()
     }
 
-  userSchema.statics.findUser = (email: string) => {
+userSchema.statics.findUser = (email: string) => {
     return User.findOne({email}).select("+password")
   }
 

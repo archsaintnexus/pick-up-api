@@ -18,7 +18,7 @@ router.post("/auth/resendOtp",resendOtpLimiter,validator(resendOtpSchema),resend
 router.post("/auth/forgotPassword",validator(forgotPasswordSchema), passwordLimiter,forgotPassword)
 router.patch("/auth/resetPassword/:token",validator(resetPasswordSchema),passwordLimiter,resetPassword)
 
-
+// this makes this route unaccessible to users that are bot logged in
 router.use(protector)
 
 
