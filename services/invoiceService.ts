@@ -346,12 +346,6 @@ export const generateInvoicePdfBuffer = async (
       white: "#FFFFFF",
     };
     const amountDue = formatCurrency(pdfData.amount, pdfData.currency);
-    const customerLines = [
-      pdfData.customerName,
-      pdfData.customerEmail,
-      pdfData.companyName,
-      pdfData.companyAddress,
-    ].filter((value): value is string => Boolean(value));
 
     doc.on("data", (chunk: Buffer) => {
       chunks.push(Buffer.from(chunk));
@@ -453,14 +447,24 @@ export const generateInvoicePdfBuffer = async (
       .font(regularFont)
       .fontSize(10)
       .fillColor("#D8E1EA")
-      .text(`Invoice Number: ${pdfData.invoiceNumber}`, pageWidth - margin - 220, 78, {
-        width: 220,
-        align: "right",
-      })
-      .text(`Issued At: ${formatDate(pdfData.issuedAt)}`, pageWidth - margin - 220, 94, {
-        width: 220,
-        align: "right",
-      });
+      .text(
+        `Invoice Number: ${pdfData.invoiceNumber}`,
+        pageWidth - margin - 220,
+        78,
+        {
+          width: 220,
+          align: "right",
+        },
+      )
+      .text(
+        `Issued At: ${formatDate(pdfData.issuedAt)}`,
+        pageWidth - margin - 220,
+        94,
+        {
+          width: 220,
+          align: "right",
+        },
+      );
 
     drawCard({
       x: pageWidth - margin - 96,
@@ -483,7 +487,7 @@ export const generateInvoicePdfBuffer = async (
 
     drawCard({
       x: margin,
-      y: 182,
+      y: 192,
       width: contentWidth,
       height: 92,
       fill: palette.accentSoft,
@@ -567,15 +571,33 @@ export const generateInvoicePdfBuffer = async (
       .fillColor(palette.primary)
       .text("Bill To", margin + 20, cardTop + 18);
 
+    const billToFields = [
+      { label: "Name", value: pdfData.customerName },
+      { label: "Email", value: pdfData.customerEmail },
+      { label: "Company", value: pdfData.companyName },
+      { label: "Address", value: pdfData.companyAddress },
+    ].filter((field): field is { label: string; value: string } =>
+      Boolean(field.value),
+    );
+
     let lineY = cardTop + 52;
-    for (const line of customerLines) {
+    for (const field of billToFields) {
+      doc
+        .font(regularFont)
+        .fontSize(9)
+        .fillColor(palette.muted)
+        .text(`${field.label}:`, margin + 20, lineY, {
+          width: 70,
+        });
+
       doc
         .font(regularFont)
         .fontSize(11)
         .fillColor(palette.ink)
-        .text(line, margin + 20, lineY, {
-          width: cardWidth - 40,
+        .text(field.value, margin + 92, lineY - 1, {
+          width: cardWidth - 112,
         });
+
       lineY += 18;
     }
 
@@ -583,26 +605,30 @@ export const generateInvoicePdfBuffer = async (
       .font(boldFont)
       .fontSize(13)
       .fillColor(palette.primary)
-      .text("Shipment Summary", margin + cardWidth + cardGap + 20, cardTop + 18);
+      .text(
+        "Shipment Summary",
+        margin + cardWidth + cardGap + 20,
+        cardTop + 18,
+      );
 
     const summaryX = margin + cardWidth + cardGap + 20;
     drawField({
       x: summaryX,
-      y: cardTop + 50,
+      y: cardTop + 45,
       label: "Shipment Code",
       value: pdfData.shipmentCode,
       width: cardWidth - 40,
     });
     drawField({
       x: summaryX,
-      y: cardTop + 90,
+      y: cardTop + 80,
       label: "Package Type",
       value: pdfData.packageType,
       width: cardWidth - 40,
     });
     drawField({
       x: summaryX,
-      y: cardTop + 130,
+      y: cardTop + 115,
       label: "Weight",
       value: `${pdfData.weight} kg`,
       width: cardWidth - 40,
@@ -658,16 +684,19 @@ export const generateInvoicePdfBuffer = async (
 
     doc.save();
     doc.lineWidth(2).strokeColor(palette.accent);
-    doc.moveTo(margin + 208, routeTop + 78).lineTo(pageWidth - margin - 208, routeTop + 78).stroke();
+    doc
+      .moveTo(margin + 208, routeTop + 78)
+      .lineTo(pageWidth - margin - 208, routeTop + 78)
+      .stroke();
     doc.circle(margin + 208, routeTop + 78, 4).fill(palette.accent);
     doc.circle(pageWidth - margin - 208, routeTop + 78, 4).fill(palette.accent);
     doc.restore();
 
     doc
       .font(boldFont)
-      .fontSize(16)
+      .fontSize(22)
       .fillColor(palette.accent)
-      .text("→", pageWidth / 2 - 6, routeTop + 67);
+      .text("→", pageWidth / 2 - 20, routeTop + 64);
 
     const billingTop = 604;
     drawCard({
@@ -690,7 +719,10 @@ export const generateInvoicePdfBuffer = async (
       .fontSize(9)
       .fillColor(palette.muted)
       .text("Description", margin + 20, billingTop + 52)
-      .text("Qty", margin + 265, billingTop + 52, { width: 40, align: "center" })
+      .text("Qty", margin + 265, billingTop + 52, {
+        width: 40,
+        align: "center",
+      })
       .text("Amount", pageWidth - margin - 120, billingTop + 52, {
         width: 100,
         align: "right",
@@ -698,7 +730,10 @@ export const generateInvoicePdfBuffer = async (
 
     doc.save();
     doc.lineWidth(1).strokeColor(palette.line);
-    doc.moveTo(margin + 20, billingTop + 70).lineTo(pageWidth - margin - 20, billingTop + 70).stroke();
+    doc
+      .moveTo(margin + 20, billingTop + 70)
+      .lineTo(pageWidth - margin - 20, billingTop + 70)
+      .stroke();
     doc.restore();
 
     doc
@@ -715,10 +750,10 @@ export const generateInvoicePdfBuffer = async (
       });
 
     drawCard({
-      x: pageWidth - margin - 190,
-      y: billingTop + 94,
+      x: pageWidth - margin - 180,
+      y: billingTop + 110,
       width: 170,
-      height: 36,
+      height: 26,
       fill: palette.primary,
       stroke: palette.primary,
       radius: 12,
@@ -728,7 +763,7 @@ export const generateInvoicePdfBuffer = async (
       .font(regularFont)
       .fontSize(9)
       .fillColor("#C7D4E0")
-      .text("Total Due", pageWidth - margin - 170, billingTop + 103, {
+      .text("Total Due", pageWidth - margin - 167, billingTop + 117, {
         width: 60,
       });
 
@@ -736,7 +771,7 @@ export const generateInvoicePdfBuffer = async (
       .font(boldFont)
       .fontSize(14)
       .fillColor(palette.white)
-      .text(amountDue, pageWidth - margin - 110, billingTop + 101, {
+      .text(amountDue, pageWidth - margin - 110, billingTop + 114, {
         width: 90,
         align: "right",
       });
