@@ -10,6 +10,7 @@ import globalErrorHandler from "./controller/errorController.js";
 import userRouter from "./routes/userRoute.js";
 import shipmentRouter from "./routes/shipmentRoute.js";
 import adminShipmentRouter from "./routes/adminShipmentRoute.js";
+import invoiceRouter from "./routes/invoiceRoute.js";
 
 import errorHandler from "errorhandler";
 import ErrorClass from "./utils/ErrorClass.js";
@@ -40,6 +41,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/shipments", shipmentRouter);
 app.use("/api/v1/admin", adminShipmentRouter);
+app.use("/api/v1/invoices", invoiceRouter);
 
 app.use((req, res, next) => {
   next(new ErrorClass(`Can't find route ${req.originalUrl} on this server!!`, 404));
