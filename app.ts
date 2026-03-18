@@ -15,8 +15,9 @@ import trackingRouter from "./routes/shipmentTrackingRoute.js"
 import errorHandler from "errorhandler";
 import ErrorClass from "./utils/ErrorClass.js";
 
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "./swagger.json" with { type: "json" };
 
-import shipmentTestRouter from "./routes/shipmentTestRoute.js";
 
 
 const app = express();
@@ -33,14 +34,14 @@ app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(mongoSanitize());
 
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/shipments", shipmentRouter);
 app.use("/api/v1/tracking", trackingRouter);
 app.use("/api/v1/admin", adminShipmentRouter);
-
-app.use("/api/v1/test-shipments", shipmentTestRouter);
 
 app.use((req, res, next) => {
   next(new ErrorClass(`Can't find route ${req.originalUrl} on this server!!`, 404));

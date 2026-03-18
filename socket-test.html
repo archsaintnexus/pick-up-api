@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO Test</title>
+  </head>
+  <body>
+    <h1>Socket.IO Notification Test</h1>
+    <p id="status">Connecting...</p>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script>
+      const userId = prompt("Enter user ID to register:");
+
+      const socket = io("http://localhost:3000");
+
+      socket.on("connect", () => {
+        document.getElementById("status").textContent =
+          "Connected with socket ID: " + socket.id;
+
+        socket.emit("register", userId);
+        console.log("Registered user:", userId);
+      });
+
+      socket.on("shipment.cancelled", (data) => {
+        console.log("Shipment cancelled event received:", data);
+        alert("Live notification: " + data.message);
+      });
+
+      socket.on("invoice.generated", (data) => {
+        console.log("Invoice generated event received:", data);
+        alert("Live notification: " + data.message);
+      });
+    </script>
+  </body>
+</html>

@@ -1,33 +1,34 @@
-import dotenv from 'dotenv'
-dotenv.config({ path: './config.env' })
-import app from './app.js';
-import connectDB from './db.js';
-import { Server } from 'socket.io';
+import dotenv from "dotenv";
+dotenv.config({ path: "./config.env" });
 
+import app from "./app.js";
+import connectDB from "./db.js";
+import { initSocket } from "./socket.js";
+import { registerEventListeners } from "./events/registerEventListeners.js";
+import { Server } from "socket.io";
 
 process.on("uncaughtException", (err) => {
-    console.log("UNCAUGHT EXCEPTION... SHUTTING DOWN!!!")
-    if (err instanceof Error) {
-        console.log(err.stack)
-        console.log(err.name);
-        console.log(err.message);
-    }
-    process.exit(1)
-})
+  console.log("UNCAUGHT EXCEPTION... SHUTTING DOWN!!!");
+  if (err instanceof Error) {
+    console.log(err.stack);
+    console.log(err.name);
+    console.log(err.message);
+  }
+  process.exit(1);
+});
 
+connectDB();
 
+registerEventListeners();
 
-connectDB() // Connect to the DB here!!!!
-
-const port = process.env.PORT || 3000
-
-
+const port = process.env.PORT || 3000;
 
 const server = app.listen(port, () => {
     console.log(`App is running on port ${port} `);
 });
 
 
+initSocket(server);
 
 process.on("unhandledRejection", (err) => {
     console.log("UNHANDLED REJECTION...... SHUTTING DOWN !!!!")
@@ -70,9 +71,6 @@ io.on("connection", (socket) => {
         console.log("User disconnected: ", socket.id)
     })
 })
-
-
-
 
 
 

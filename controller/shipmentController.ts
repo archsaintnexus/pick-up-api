@@ -1,13 +1,15 @@
 import type { NextFunction, Request, Response } from "express";
 import Shipment from "../models/shipmentModel.js";
 import ErrorClass from "../utils/ErrorClass.js";
-import { createAuditLog } from "../services/auditService.js";
 import { createShipmentInvoice } from "../services/invoiceService.js";
-import {
-  sendEmailNotification,
-  sendPushNotification,
-} from "../services/notificationService.js";
 import { shipmentHistoryQuerySchema } from "../SchemaTypes/shipmentSchema.js";
+import eventBus from "../events/eventBus.js";
+
+type PopulatedUser = {
+  _id: string;
+  email: string;
+  fullName?: string;
+};
 
 export const getShipmentHistory = async (
   req: Request,
@@ -77,7 +79,10 @@ export const cancelShipment = async (
     const { shipmentId } = req.params;
     const { reason } = req.body;
 
-    const shipment = await Shipment.findById(shipmentId);
+    const shipment = await Shipment.findById(shipmentId).populate(
+      "user",
+      "email fullName"
+    );
 
     if (!shipment) {
       return next(new ErrorClass("Shipment not found", 404));
@@ -89,30 +94,24 @@ export const cancelShipment = async (
       );
     }
 
+    const populatedUser = shipment.user as unknown as PopulatedUser;
+
+    if (!populatedUser?.email) {
+      return next(new ErrorClass("Shipment user email not found", 400));
+    }
+
     shipment.status = "CANCELLED";
     shipment.cancelReason = reason;
     shipment.cancelledAt = new Date();
 
     await shipment.save();
 
-    await createAuditLog({
-      actorId: null,
-      action: "CANCEL_SHIPMENT",
-      entity: "Shipment",
-      entityId: shipment._id.toString(),
-      metadata: {
-        shipmentCode: shipment.shipmentCode,
-        reason,
-      },
-    });
-
-    await sendEmailNotification({
-      subject: "Shipment Cancelled",
-      message: `Shipment ${shipment.shipmentCode} has been cancelled.`,
-    });
-
-    await sendPushNotification({
-      message: `Shipment ${shipment.shipmentCode} has been cancelled.`,
+    eventBus.emit("shipment.cancelled", {
+      shipmentId: String(shipment._id),
+      shipmentCode: shipment.shipmentCode,
+      userId: String(populatedUser._id),
+      email: populatedUser.email,
+      reason,
     });
 
     res.status(200).json({
@@ -139,22 +138,29 @@ export const generateInvoice = async (
       return next(new ErrorClass("Shipment ID is required", 400));
     }
 
+    const shipment = await Shipment.findById(shipmentId).populate(
+      "user",
+      "email fullName"
+    );
+
+    if (!shipment) {
+      return next(new ErrorClass("Shipment not found", 404));
+    }
+
+    const populatedUser = shipment.user as unknown as PopulatedUser;
+
+    if (!populatedUser?.email) {
+      return next(new ErrorClass("Shipment user email not found", 400));
+    }
+
     const invoice = await createShipmentInvoice(shipmentId);
 
-    await createAuditLog({
-      actorId: null,
-      action: "GENERATE_INVOICE",
-      entity: "Invoice",
-      entityId: invoice._id.toString(),
-      metadata: {
-        shipmentId,
-        invoiceNumber: invoice.invoiceNumber,
-      },
-    });
-
-    await sendEmailNotification({
-      subject: "Invoice Generated",
-      message: `Invoice ${invoice.invoiceNumber} has been generated successfully.`,
+    eventBus.emit("invoice.generated", {
+      shipmentId: String(shipment._id),
+      invoiceId: String(invoice._id),
+      invoiceNumber: invoice.invoiceNumber,
+      userId: String(populatedUser._id),
+      email: populatedUser.email,
     });
 
     res.status(200).json({

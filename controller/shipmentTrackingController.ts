@@ -52,7 +52,10 @@ export const createTracking = async (req: Request, res: Response, next: NextFunc
 
 
         await sendPushNotification({
+            userId,
+            event: "tracking_created",
             message: `Tracking set up for shipment ${trackingNumber}`,
+            data: { trackingNumber, socketRoomId }
         });
 
         return res.status(201).json({
@@ -94,7 +97,6 @@ export const updateStatus = async (req: Request, res: Response, next: NextFuncti
         }
         
 
-
         const statusUpdate = await ShipmentTracking.findOneAndUpdate(
             {trackingNumber},
             {
@@ -119,7 +121,9 @@ export const updateStatus = async (req: Request, res: Response, next: NextFuncti
             return next(new ErrorClass("Socket room not found", 400));
         }
 
-        io.to(statusUpdate.socketRoomId).emit("status_updated", {
+        const roomId = statusUpdate.socketRoomId
+
+        io.to(roomId).emit("status_updated", {
             trackingNumber,
             currentStatus: status,
             note,
@@ -129,7 +133,10 @@ export const updateStatus = async (req: Request, res: Response, next: NextFuncti
         const notificationMessage = STATUS_MESSAGES[status] ?? `Your shipment status has been updated to ${status}`;
 
         await sendPushNotification({
-            message: notificationMessage
+            userId: existingTracking.user.toString(),
+            event: "status_updated",
+            message: notificationMessage,
+            data: { trackingNumber, currentStatus: status }
         });
 
         return res.status(200).json({
@@ -182,7 +189,9 @@ export const uploadPOD = async (req: Request, res: Response, next: NextFunction)
             return next(new ErrorClass("Socket room not found", 400));
         }
 
-        io.to(podData.socketRoomId).emit("pickup_completed", {
+        const roomId = podData.socketRoomId; 
+
+        io.to(roomId).emit("pickup_completed", {
             trackingNumber,
             currentStatus: "DELIVERED",
             pod: {
@@ -193,8 +202,13 @@ export const uploadPOD = async (req: Request, res: Response, next: NextFunction)
             timestamp: new Date()
         });
 
+        io.to(roomId).emit("tracking_complete", { trackingNumber });
+
         await sendPushNotification({
-            message: `Your shipment has been delivered to ${podData.pod?.recipientName}`,
+            userId: podData.user.toString(),
+            event: "pickup_completed",
+            message: `Your shipment has been delivered to ${recipientName}`,
+            data: { trackingNumber, recipientName }
         });
 
         return res.status(200).json({
