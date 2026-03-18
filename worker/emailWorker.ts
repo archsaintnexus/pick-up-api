@@ -1,5 +1,8 @@
 import dotenv from 'dotenv'
-dotenv.config({ path: '../config.env' })
+if (process.env.NODE_ENV !== 'production') {
+    dotenv.config({ path: './config.env' })
+}
+
 import { Worker } from "bullmq"
 import EmailService from "../services/Email.js";
 
@@ -45,6 +48,8 @@ const emailWorker = new Worker("emailQueue", async (job) => {
     connection: {
         host: process.env.REDIS_HOST ?? "localhost",
         port: Number(process.env.REDIS_PORT) || 6379,
+        password: process.env.REDIS_PASSWORD,
+        tls: {} 
     }
 })
 

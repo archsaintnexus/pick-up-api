@@ -9,9 +9,11 @@
     "build": "tsc -p tsconfig.json",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "start": "node dist/server.js",
+    "start": "npx tsc && node dist/server.js",
+    "start:worker": "npx tsc && node dist/worker/emailWorker.js",
     "dev": "nodemon --exec tsx server.ts",
-    "prod": "NODE_ENV=Production nodemon --exec tsx server.ts"
+    "dev:worker": "nodemon --exec tsx worker/emailWorker.ts",
+    "prod": "NODE_ENV=production node dist/server.js"
   },
   "keywords": [],
   "author": "",
