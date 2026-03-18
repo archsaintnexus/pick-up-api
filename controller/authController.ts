@@ -98,7 +98,7 @@ export async function verifyOtp(req: Request, res: Response, next: NextFunction)
 
 
 
-export async function logOut(req: Request, res: Response, next: NextFunction) {
+export async function logOut(req: Request, res: Response) {
   res.cookie("jwt", "loggedOut", {
     httpOnly: true,
     expires:new Date(0),
@@ -140,6 +140,7 @@ export async function forgotPassword(req: Request, res: Response, next: NextFunc
       message:"Reset Password Link sent to your email"
     })
   } catch (error) {
+    console.log(error)
     user.passwordResetExpires = undefined;
     user.passwordResetToken = undefined;
     await user.save({ validateBeforeSave: false })

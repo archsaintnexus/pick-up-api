@@ -8,7 +8,7 @@ import ErrorClass from "../utils/ErrorClass.js";
 
 
 
-export async function createAddress(req: Request, res: Response, next: NextFunction) {
+export async function createAddress(req: Request, res: Response) {
     
     const address = await Address.createAddress({
         user: req.user._id,

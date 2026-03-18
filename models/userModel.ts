@@ -150,7 +150,7 @@ userSchema.statics.findUser = (email: string) => {
     return User.findOne({email}).select("+password")
   }
 
-userSchema.pre(/^find/, function (this:mongoose.Query<any,any>, next: mongoose.CallbackWithoutResultAndOptionalError) {
+userSchema.pre(/^find/, function (this:mongoose.Query<UserDoc[],UserDoc>, next: mongoose.CallbackWithoutResultAndOptionalError) {
   this.find({ isActive: { $ne: false } })
   
   next()

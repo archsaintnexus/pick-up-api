@@ -31,7 +31,7 @@ export async function protector(req: Request, res: Response, next: NextFunction)
 
   if(!user.isVerified) return next(new ErrorClass("User account not verified.. ",401))
   
-  if(user.changedPasswordAfter(decoded?.iat!)) return next(new ErrorClass(  "User recently changed password. Please log in again.",
+  if(user.changedPasswordAfter(decoded?.iat)) return next(new ErrorClass(  "User recently changed password. Please log in again.",
     401))
 
   
