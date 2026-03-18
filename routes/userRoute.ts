@@ -8,6 +8,7 @@ import { protector } from "../middleware/protector.js"
 import { deleteAccount, getMe, updateProfile } from "../controller/userController.js"
 
 
+
 const router = express.Router()
 
 
@@ -18,7 +19,7 @@ router.post("/auth/resendOtp",resendOtpLimiter,validator(resendOtpSchema),resend
 router.post("/auth/forgotPassword",validator(forgotPasswordSchema), passwordLimiter,forgotPassword)
 router.patch("/auth/resetPassword/:token",validator(resetPasswordSchema),passwordLimiter,resetPassword)
 
-// this makes this route unaccessible to users that are bot logged in
+// this makes this route unaccessible to users that are not logged in
 router.use(protector)
 
 

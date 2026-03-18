@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import password from "../services/password.js";
 import crypto from "crypto"
+import ErrorClass from "../utils/ErrorClass.js";
 
 
 
@@ -12,7 +13,9 @@ interface userAttr {
     password: string ;
     confirmPassword?: string;
     role: string;
-    companyName?: string | undefined;
+  companyName?: string | undefined;
+  phoneNumber: string;
+  phoneNumber2?: string | undefined;
     companyAddress?: {
       street?: string;
       city?: string;
@@ -45,6 +48,8 @@ interface UserDoc extends mongoose.Document{
   confirmPassword?: string | undefined;
   passwordChangedDate?: Date | undefined;
   isVerified?: boolean;
+  phoneNumber: string;
+  phoneNumber2?: string | undefined
   isActive?: boolean;
   profileCompleted?: boolean;
   passwordResetToken?: string | undefined;
@@ -84,7 +89,7 @@ const userSchema = new mongoose.Schema({
       minLength: 8,
       maxLength:30
     },
-    companyName: {
+    companyName:{
             type: String,
             default: null,
             trim: true,
@@ -104,6 +109,11 @@ const userSchema = new mongoose.Schema({
     type: Date,
     select:false
   },
+  phoneNumber: {
+    type: String,
+    required:true
+  },
+  phoneNumber2:String,
   passwordResetToken: String,
   passwordResetExpires:Date,
   isVerified: {
@@ -125,7 +135,11 @@ const userSchema = new mongoose.Schema({
 })
   
 
-
+userSchema.index({
+  role:1
+}, {
+  unique:true, partialFilterExpression:{role:"admin"}
+})
 
 
 userSchema.statics.createUser = async (attrs: userAttr) => {
@@ -142,11 +156,18 @@ userSchema.pre(/^find/, function (this:mongoose.Query<any,any>, next: mongoose.C
   next()
   })
 
-  userSchema.pre("save", async function (next: mongoose.CallbackWithoutResultAndOptionalError) {
-      if (!this.isModified("password")) return next()
-      
-      this.password = await password.hashPassword(this.password)
-      this.set("confirmPassword",undefined)
+userSchema.pre("save", async function (next: mongoose.CallbackWithoutResultAndOptionalError) {
+    if (this.isNew &&  this.role === "admin") {
+      const count = await mongoose.model("User").countDocuments({ role: "admin" })
+      if (count >= 1) return next(new ErrorClass("Only one admin can be created", 400))
+      this.isVerified = true
+      this.profileCompleted = true
+    }
+  
+  if (this.isModified("password")) {
+    this.password = await password.hashPassword(this.password)
+    this.set("confirmPassword",undefined)
+     }
 
       
 

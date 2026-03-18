@@ -1,6 +1,20 @@
 import joi from "joi"
 
 
+export const adminSchema = joi.object({
+    fullName: joi.string().min(4).max(30).required(),
+    email: joi.string().email().required(),
+    role: joi.string().valid("customer", "business", "admin", "driver").default("admin"),
+    phoneNumber: joi.string().pattern(new RegExp(/^\+[1-9][0-9]{6,14}$/)).required(),
+    password: joi.string().min(8).max(30).pattern(new RegExp('^[a-zA-Z0-9]{8,30}$')).required().messages({
+        "string.pattern.base": "Password must be 8-30 characters and contain only letters and numbers",
+      }),
+    confirmPassword: joi.any().valid(joi.ref("password")).required().messages({
+        "any.only": "Passwords do not match",
+        "any.required": "Please confirm your password",
+    })
+})
+
 
 export const createUserSchema = joi.object({
     fullName: joi.string().min(6).max(30).required(),
@@ -25,6 +39,8 @@ export const createUserSchema = joi.object({
             country: joi.string().optional(),
         }).optional()
     }),
+    phoneNumber: joi.string().pattern(new RegExp(/^\+[1-9][0-9]{6,14}$/)).required(),
+    phoneNumber2: joi.string().pattern(new RegExp(/^\+[1-9][0-9]{6,14}$/)).optional(),
     role:joi.string().valid("customer","business","admin","driver").default("customer"),
     password: joi.string().min(8).max(30).pattern(new RegExp('^[a-zA-Z0-9]{8,30}$')).required().messages({
         "string.pattern.base": "Password must be 8-30 characters and contain only letters and numbers",

@@ -12,40 +12,36 @@ import { resetPasswordConfirmTemplate } from "../templates/resetPasswordMail.js"
 class EmailService {
 
     private static transporter() {
-      
-        return  nodemailer.createTransport({
+      return  nodemailer.createTransport({
             host: 'smtp.resend.com',
             secure: true,
             port: 465,
             auth: {
                 user: "resend",
                 pass: process.env.RESEND_PASSWORD,
-            },
-                         
+            },                   
         })
     } 
     
     static async sendOtp(email:string,otp:string) {
-
         await this.transporter().sendMail({
             from: `<${process.env.EMAIL_FROM}>`,
             to: email,
             subject: "Your OTP Code",
             html: otpTemplate(otp)
         })
-        
     }
+
     static async sendPasswordResetLink(email: string, resetUrl: string) {
         await this.transporter().sendMail({
             from: `<${process.env.EMAIL_FROM}>`,
             to: email,
             subject: "Your Password Reset Link",
             html: resetPasswordTemplate(resetUrl)
-        })
-        
+        })    
     }
+
     static async sendWelcomeEmail(email: string,fullName:string) {
-        
         await this.transporter().sendMail({
             from: `<${process.env.EMAIL_FROM}>`,
             to: email,
@@ -54,6 +50,7 @@ class EmailService {
             
         })
     }
+    
     static async sendUpdatePasswordMail(email: string) {
         await this.transporter().sendMail({
             from: `<${process.env.EMAIL_FROM}>`,

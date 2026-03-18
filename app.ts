@@ -5,22 +5,27 @@ import morgan from "morgan";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser"
+import responseTime from "response-time";
 
 
 
-import globalErrorHandler from "./controller/errorController.js";
-
+// individual routes
 import userRouter from "./routes/userRoute.js";
 import addressRouter from "./routes/addressRouter.js"
 import shipmentRouter from "./routes/shipmentRoute.js";
-import adminShipmentRouter from "./routes/adminShipmentRoute.js";
-import invoiceRouter from "./routes/invoiceRoute.js";
+import adminRouter from './routes/adminRouter.js'
 
+// to handle errors
+import "express-async-errors"
 import errorHandler from "errorhandler";
 import ErrorClass from "./utils/ErrorClass.js";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./swagger.json" with { type: "json" };
+
+//global error handler
+import globalErrorHandler from "./controller/errorController.js";
+
 
 
 
@@ -33,6 +38,7 @@ if (process.env.NODE_ENV === "development") {
 
 app.use(cors());
 app.use(helmet());
+app.use(responseTime())
 app.use(cookieParser())
 
 app.use(express.json({ limit: "10kb" }));
@@ -56,8 +62,7 @@ app.get("/health", (req, res) => {
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/address",addressRouter)
 app.use("/api/v1/shipments", shipmentRouter);
-app.use("/api/v1/admin", adminShipmentRouter);
-app.use("/api/v1/invoices", invoiceRouter);
+app.use("/api/v1/admin", adminRouter);
 
 app.use((req, res, next) => {
   next(new ErrorClass(`Can't find route ${req.originalUrl} on this server!!`, 404));

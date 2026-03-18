@@ -17,7 +17,7 @@ export const updateAddressSchema = joi.object({
     state: joi.string().min(2).max(60).optional(),
     label: joi.string().min(2).max(40).optional(),
     postalCode: joi.string().pattern(/^[A-Za-z0-9 ]+$/).optional(),
-    country:joi.string().min(2).max(100).default("Nigeria").optional(),
+    country:joi.string().min(2).max(100).default("Nigeria"),
 
 })
 

@@ -7,20 +7,13 @@ import ErrorClass from "../utils/ErrorClass.js";
 
 
 
-export async function createAddress(req:Request,res:Response,next:NextFunction) {
-    const count = await Address.countDocuments({
-        user: req.user._id
-    })
 
-    if (count >= 3) return next(new ErrorClass("You are only permitted to create 3 addresses", 400))
+export async function createAddress(req: Request, res: Response, next: NextFunction) {
     
     const address = await Address.createAddress({
         user: req.user._id,
         ...req.body,
-        isDefault: count === 0
-
     })
-
 
     res.status(201).json({
         status: "Success",

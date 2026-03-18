@@ -21,27 +21,35 @@ export async function register(req: Request, res: Response, next: NextFunction) 
       companyAddress: req.body.companyAddress,
       role: req.body.role,
       password: req.body.password,
+      phoneNumber: req.body.phoneNumber,
+      phoneNumber2: req.body.phoneNumber2 || undefined,
       confirmPassword:req.body.confirmPassword
     });
   
+  if (user.role === "admin") {
+   return  res.status(201).json({
+      status: "Success",
+      message:"Admin Created Successfully."
+    })
+  }
   const otp = await otpService.generateOTP(user._id.toString())
   
  
- await emailQueue.add("sendOtp", {
-    email: user.email,
-    otp:otp
- }, {
-   attempts: 5,
-   backoff: {
-     type: "exponential",
-     delay:5000 // restarts every 5 second
-   }
-  })
-  
-  res.status(201).json({
-    status: "Success",
-    message:"An OTP has been sent to your email."
-  })
+  await emailQueue.add("sendOtp", {
+     email: user.email,
+     otp:otp
+  }, {
+    attempts: 5,
+    backoff: {
+      type: "exponential",
+      delay:5000 // restarts every 5 second
+    }
+   })
+   
+   res.status(201).json({
+     status: "Success",
+     message:"An OTP has been sent to your email."
+   })
 }
 
 
