@@ -35,6 +35,16 @@ app.use(mongoSanitize());
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+// HEALTH CHECK ROUTE
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "UP",
+    service: "pick-up-logistics-api",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
+});
 
 
 app.use("/api/v1/users", userRouter);
