@@ -5,6 +5,7 @@ module.exports = {
   testMatch: ["**/*.test.ts"],
   moduleFileExtensions: ["ts", "js", "json"],
   extensionsToTreatAsEsm: [".ts"],
+  testTimeout: 30000,
   transform: {
     "^.+\\.ts$": [
       "ts-jest",

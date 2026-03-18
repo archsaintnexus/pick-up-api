@@ -5,8 +5,8 @@
   "main": "server.ts",
   "type": "module",
   "scripts": {
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
-    "build": "tsc -p tsconfig.json",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --forceExit ",
+    "build": "npx tsc",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "start": "npx tsc && node dist/server.js",

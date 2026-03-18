@@ -14,21 +14,23 @@ describe("Shipment History Endpoint", () => {
 
   beforeAll(async () => {
     await connectTestDB();
-  });
+  },30000);
 
   afterAll(async () => {
     await closeTestDB();
-  });
+  },30000);
 
   afterEach(async () => {
     await clearTestDB();
-  });
+  },30000);
 
   beforeEach(async () => {
     const user = await User.create({
       fullName: "Wisdom Shaibu",
       email: "wisdom@test.com",
       password: "Password1",
+      confirmPassword: "examplepassword",
+      phoneNumber: "+2347065183062",
       role: "customer",
     });
 
@@ -107,6 +109,8 @@ describe("Shipment History Endpoint", () => {
       fullName: "Another User",
       email: "another@test.com",
       password: "examplepassword",
+      confirmPassword: "examplepassword",
+      phoneNumber: "+2347065183062",
       role: "customer",
     });
 
