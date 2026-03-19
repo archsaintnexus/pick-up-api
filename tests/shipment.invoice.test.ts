@@ -73,6 +73,19 @@ describe("Generate Invoice Endpoint", () => {
     const savedInvoice = await Invoice.findOne({ shipment: shipmentId });
     expect(savedInvoice).not.toBeNull();
     expect(savedInvoice?.invoiceNumber).toBeDefined();
+    expect(savedInvoice?.customerSnapshot).toMatchObject({
+      fullName: "Wisdom Shaibu",
+      email: "wisdom@test.com",
+      companyName: null,
+      companyAddress: null,
+    });
+    expect(savedInvoice?.shipmentSnapshot).toMatchObject({
+      shipmentCode: updatedShipment?.shipmentCode,
+      pickupAddress: "12 Allen Avenue, Ikeja",
+      dropoffAddress: "45 Admiralty Way, Lekki",
+      packageType: "Documents",
+      weight: 2,
+    });
   });
 
   it("should return the existing invoice if already generated", async () => {

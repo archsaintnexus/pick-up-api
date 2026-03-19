@@ -104,6 +104,7 @@
     "/api/v1/shipments/{shipmentId}/invoice": {
       "get": {
         "summary": "Generate invoice for a shipment",
+        "deprecated": true,
         "tags": ["Shipments"],
         "parameters": [
           {
@@ -118,6 +119,71 @@
         "responses": {
           "200": {
             "description": "Invoice generated successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/invoices/shipments/{shipmentId}": {
+      "post": {
+        "summary": "Create or fetch invoice for a shipment",
+        "tags": ["Invoices"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shipmentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Existing invoice returned successfully"
+          },
+          "201": {
+            "description": "Invoice created successfully"
+          },
+          "400": {
+            "description": "Invalid shipment ID"
+          },
+          "404": {
+            "description": "Shipment not found"
+          }
+        }
+      }
+    },
+    "/api/v1/invoices/shipments/{shipmentId}/download": {
+      "get": {
+        "summary": "Download invoice PDF for a shipment",
+        "tags": ["Invoices"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shipmentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice PDF downloaded successfully",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid shipment ID"
+          },
+          "404": {
+            "description": "Shipment not found"
           }
         }
       }
