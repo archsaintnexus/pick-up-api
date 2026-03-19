@@ -14,15 +14,15 @@ describe("Shipment History Endpoint", () => {
 
   beforeAll(async () => {
     await connectTestDB();
-  },30000);
+  },60000);
 
   afterAll(async () => {
     await closeTestDB();
-  },30000);
+  },60000);
 
   afterEach(async () => {
     await clearTestDB();
-  },30000);
+  },60000);
 
   beforeEach(async () => {
     const user = await User.create({

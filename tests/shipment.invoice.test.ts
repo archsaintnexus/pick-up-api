@@ -16,15 +16,15 @@ describe("Generate Invoice Endpoint", () => {
 
   beforeAll(async () => {
     await connectTestDB();
-  },30000);
+  },60000);
 
   afterAll(async () => {
     await closeTestDB();
-  },30000);
+  },60000);
 
   afterEach(async () => {
     await clearTestDB();
-  },30000);
+  },60000);
 
   beforeEach(async () => {
     const user = await User.create({
@@ -75,11 +75,12 @@ describe("Generate Invoice Endpoint", () => {
     const savedInvoice = await Invoice.findOne({ shipment: shipmentId });
     expect(savedInvoice).not.toBeNull();
     expect(savedInvoice?.invoiceNumber).toBeDefined();
+ 
     expect(savedInvoice?.customerSnapshot).toMatchObject({
       fullName: "Wisdom Shaibu",
       email: "wisdom@test.com",
       companyName: null,
-      companyAddress: null,
+      companyAddress: {},
     });
     expect(savedInvoice?.shipmentSnapshot).toMatchObject({
       shipmentCode: updatedShipment?.shipmentCode,

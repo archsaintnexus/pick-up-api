@@ -6,7 +6,7 @@ if (process.env.NODE_ENV !== 'production') {
 import { Queue } from "bullmq"
 
 
-const emailQueue = new Queue("emailQueue", {
+const emailQueue =process.env.NODE_ENV === "test" ? null :  new Queue("emailQueue", {
     connection: {
         host: process.env.REDIS_HOST ?? "localhost",
         port: Number(process.env.REDIS_PORT) || 6379,

@@ -14,6 +14,7 @@ import userRouter from "./routes/userRoute.js";
 import addressRouter from "./routes/addressRouter.js"
 import shipmentRouter from "./routes/shipmentRoute.js";
 import adminRouter from './routes/adminRouter.js'
+import invoiceRouter from "./routes/invoiceRoute.js"
 
 // to handle errors
 import "express-async-errors"
@@ -62,6 +63,7 @@ app.get("/health", (req, res) => {
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/address",addressRouter)
 app.use("/api/v1/shipments", shipmentRouter);
+app.use('/api/v1/invoices',invoiceRouter)
 app.use("/api/v1/admin", adminRouter);
 
 app.use((req, res, next) => {

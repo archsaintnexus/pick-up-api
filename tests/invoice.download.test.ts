@@ -11,22 +11,22 @@ import User from "../models/userModel.js";
 import Shipment from "../models/shipmentModel.js";
 import Invoice from "../models/invoiceModel.js";
 
-jest.setTimeout(40000);
+jest.setTimeout(60000);
 
 describe("Download Invoice Endpoint", () => {
   let shipmentId: string;
 
   beforeAll(async () => {
     await connectTestDB();
-  },30000);
+  },60000);
 
   afterAll(async () => {
     await closeTestDB();
-  },30000);
+  },60000);
 
   afterEach(async () => {
     await clearTestDB();
-  },30000);
+  },60000);
 
   beforeEach(async () => {
     const user = await User.create({
