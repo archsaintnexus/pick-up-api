@@ -13,6 +13,10 @@ export async function register(req: Request, res: Response, next: NextFunction) 
     if (existingUser) {
       return next(new ErrorClass("User with this email already exists", 400));
     }
+  
+  if (!req.body.confirmPassword) return next(new ErrorClass("Please Provide confirm password", 400))
+  
+  if(req.body.password !== req.body.confirmPassword) return next(new ErrorClass("Password does not match",400))
 
     const user = await User.createUser({
       fullName: req.body.fullName,
@@ -22,8 +26,7 @@ export async function register(req: Request, res: Response, next: NextFunction) 
       role: req.body.role,
       password: req.body.password,
       phoneNumber: req.body.phoneNumber,
-      phoneNumber2: req.body.phoneNumber2 || undefined,
-      confirmPassword:req.body.confirmPassword
+      phoneNumber2: req.body.phoneNumber2 || undefined
     });
   
   if (user.role === "admin") {

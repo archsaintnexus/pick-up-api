@@ -11,7 +11,6 @@ interface userAttr {
     fullName: string;
     email: string;
     password: string ;
-    confirmPassword?: string;
     role: string;
   companyName?: string | undefined;
   phoneNumber: string;
@@ -45,7 +44,6 @@ interface UserDoc extends mongoose.Document{
     state?: string;
     country?: string;
 }
-  confirmPassword?: string | undefined;
   passwordChangedDate?: Date | undefined;
   isVerified?: boolean;
   phoneNumber: string;
@@ -82,12 +80,6 @@ const userSchema = new mongoose.Schema({
       select:false,
       minLength: 8, maxLength: 30
         
-    },
-    confirmPassword: {
-        type: String,
-      required: true,
-      minLength: 8,
-      maxLength:30
     },
     companyName:{
             type: String,
@@ -136,10 +128,13 @@ const userSchema = new mongoose.Schema({
   
 
 userSchema.index({
-  role:1
+  role: 1
+
 }, {
   unique:true, partialFilterExpression:{role:"admin"}
 })
+
+userSchema.index({ email: 1 }, { unique: true });
 
 
 userSchema.statics.createUser = async (attrs: userAttr) => {
@@ -166,10 +161,7 @@ userSchema.pre("save", async function (next: mongoose.CallbackWithoutResultAndOp
   
   if (this.isModified("password")) {
     this.password = await password.hashPassword(this.password)
-    this.set("confirmPassword",undefined)
      }
-
-      
 
       next()
 })
