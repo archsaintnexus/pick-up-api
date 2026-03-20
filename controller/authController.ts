@@ -14,7 +14,7 @@ export async function register(req: Request, res: Response, next: NextFunction) 
       return next(new ErrorClass("User with this email already exists", 400));
     }
   
-  if (!req.body.confirmPassword) return next(new ErrorClass("Please Provide confirm password", 400))
+  if (!req.body.confirmPassword) return next(new ErrorClass("Please Provide confirm your  password", 400))
   
   if(req.body.password !== req.body.confirmPassword) return next(new ErrorClass("Password does not match",400))
 
@@ -164,8 +164,12 @@ export async function updatePassword(req: Request, res: Response, next: NextFunc
 
   if (!(await user.comparePassword(currentPassword))) return next(new ErrorClass("Incorrect Password", 403))
   
+    if (!confirmPassword) return next(new ErrorClass("Please confirm your  password", 400))
+  
+      if(password !== confirmPassword) return next(new ErrorClass("Password does not match",400))
+  
   user.password = password
-  user.confirmPassword = confirmPassword
+
 
   await emailQueue.add("updatePasswordMail", {
     email: user.email
@@ -231,10 +235,12 @@ export async function resetPassword(req: Request, res: Response, next: NextFunct
   })
 
 
-  if(!user) return next(new ErrorClass("Token is invalid or has expired",400))
+  if (!user) return next(new ErrorClass("Token is invalid or has expired", 400))
+    if (!req.body.confirmPassword) return next(new ErrorClass("Please confirm your password", 400))
+  
+    if(req.body.password !== req.body.confirmPassword) return next(new ErrorClass("Password does not match",400))
 
   user.password = req.body.password;
-  user.confirmPassword = req.body.confirmPassword;
   user.passwordResetExpires = undefined;
   user.passwordResetToken = undefined;
 
