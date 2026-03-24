@@ -13,7 +13,7 @@ import responseTime from "response-time";
 import userRouter from "./routes/userRoute.js";
 import addressRouter from "./routes/addressRouter.js"
 import shipmentRouter from "./routes/shipmentRoute.js";
-import adminShipmentRouter from "./routes/adminShipmentRoute.js";
+//import adminShipmentRouter from "./routes/adminShipmentRoute.js";
 import trackingRouter from "./routes/shipmentTrackingRoute.js"
 import invoiceRouter from "./routes/invoiceRoute.js";
 
@@ -66,7 +66,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/address",addressRouter)
 app.use("/api/v1/shipments", shipmentRouter);
 app.use("/api/v1/tracking", trackingRouter);
-app.use("/api/v1/admin", adminShipmentRouter);
+//app.use("/api/v1/admin", adminShipmentRouter);
 app.use("/api/v1/invoices", invoiceRouter);
 
 app.use((req, res, next) => {
