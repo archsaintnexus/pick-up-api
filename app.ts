@@ -4,20 +4,32 @@ import mongoSanitize from "@exortek/express-mongo-sanitize";
 import morgan from "morgan";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser"
+import responseTime from "response-time";
 
-import globalErrorHandler from "./controller/errorController.js";
 
+
+// individual routes
 import userRouter from "./routes/userRoute.js";
+import addressRouter from "./routes/addressRouter.js"
 import shipmentRouter from "./routes/shipmentRoute.js";
 import adminShipmentRouter from "./routes/adminShipmentRoute.js";
 import trackingRouter from "./routes/shipmentTrackingRoute.js"
 import invoiceRouter from "./routes/invoiceRoute.js";
+import adminRouter from './routes/adminRouter.js'
+import invoiceRouter from "./routes/invoiceRoute.js"
 
+// to handle errors
+import "express-async-errors"
 import errorHandler from "errorhandler";
 import ErrorClass from "./utils/ErrorClass.js";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./swagger.json" with { type: "json" };
+
+//global error handler
+import globalErrorHandler from "./controller/errorController.js";
+
 
 
 
@@ -30,6 +42,8 @@ if (process.env.NODE_ENV === "development") {
 
 app.use(cors());
 app.use(helmet());
+app.use(responseTime())
+app.use(cookieParser())
 
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
@@ -50,6 +64,7 @@ app.get("/health", (req, res) => {
 
 
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/address",addressRouter)
 app.use("/api/v1/shipments", shipmentRouter);
 app.use("/api/v1/tracking", trackingRouter);
 app.use("/api/v1/admin", adminShipmentRouter);

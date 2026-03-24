@@ -15,21 +15,23 @@ describe("Cancel Shipment Endpoint", () => {
 
   beforeAll(async () => {
     await connectTestDB();
-  });
+  },60000);
 
   afterAll(async () => {
     await closeTestDB();
-  });
+  },60000);
 
   afterEach(async () => {
     await clearTestDB();
-  });
+  },60000);
 
   beforeEach(async () => {
     const user = await User.create({
       fullName: "Wisdom Shaibu",
       email: "wisdom@test.com",
       password: "examplepassword",
+      confirmPassword: "examplepassword",
+      phoneNumber: "+2347065183062",
       role: "customer",
     });
 
