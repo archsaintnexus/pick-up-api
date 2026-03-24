@@ -16,8 +16,7 @@ import shipmentRouter from "./routes/shipmentRoute.js";
 import adminShipmentRouter from "./routes/adminShipmentRoute.js";
 import trackingRouter from "./routes/shipmentTrackingRoute.js"
 import invoiceRouter from "./routes/invoiceRoute.js";
-import adminRouter from './routes/adminRouter.js'
-import invoiceRouter from "./routes/invoiceRoute.js"
+
 
 // to handle errors
 import "express-async-errors"
