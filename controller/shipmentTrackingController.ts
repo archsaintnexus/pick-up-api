@@ -2,11 +2,11 @@ import type { NextFunction, Request, Response } from "express";
 import { nanoid } from "nanoid";
 import { ShipmentTracking } from "../models/shipmentTrackingModel.js";
 import ErrorClass from "../utils/ErrorClass.js";
-import { io } from "../server.js";
 import { sendPushNotification } from "../services/notificationService.js";
 import { STATUS_MESSAGES } from "../constants/shipmentStatus.js";
 import User from "../models/userModel.js";
 import Shipment from "../models/shipmentModel.js";
+import { getIo } from "../socket.js";
 
 // POST 
 export const createTracking = async (req: Request, res: Response, next: NextFunction) => {
@@ -77,6 +77,7 @@ export const updateStatus = async (req: Request, res: Response, next: NextFuncti
     try {
         const { trackingNumber } = req.params;
         const { status, note, updatedBy } = req.body;
+        const io = getIo();
 
         if(status === "PENDING"){
             return next(new ErrorClass("Status cannot be set back to PENDING", 400));
@@ -155,6 +156,7 @@ export const uploadPOD = async (req: Request, res: Response, next: NextFunction)
     try {
         const { trackingNumber } = req.params;
         const { imageUrl, uploadedBy, recipientName } = req.body;
+        const io = getIo();
 
         if(!imageUrl || !recipientName){
             return next(new ErrorClass("All fields are required", 400));
@@ -272,6 +274,7 @@ export const getTimeline = async (req: Request, res: Response, next: NextFunctio
         next(error);
     }
 }
+
 export const getPOD = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { trackingNumber } = req.params;
