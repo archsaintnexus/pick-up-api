@@ -9,7 +9,8 @@ const validator = (schema: joi.ObjectSchema) => {
     return (req:Request, res:Response, next:NextFunction) => {
         const { error } = schema.validate(req.body, {
             abortEarly: false, // Return all errors, not just the first one
-            stripUnknown: true, // Remove unknown properties
+            stripUnknown: true,// Remove unknown properties
+            context:{role: req.user?.role},
             errors: {
                 wrap: {
                     label: false // Don't wrap error labels
