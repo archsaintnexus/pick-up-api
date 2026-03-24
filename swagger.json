@@ -11,11 +11,1201 @@
       "description": "Local server"
     }
   ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Health check and API documentation endpoints"
+    },
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization endpoints"
+    },
+    {
+      "name": "User Profile",
+      "description": "User profile management endpoints"
+    },
+    {
+      "name": "Address",
+      "description": "Address management endpoints"
+    },
+    {
+      "name": "Shipments",
+      "description": "Shipment management endpoints"
+    },
+    {
+      "name": "Invoices",
+      "description": "Invoice generation and download endpoints"
+    },
+    {
+      "name": "Admin",
+      "description": "Admin-only endpoints for system management"
+    }
+  ],
   "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check endpoint",
+        "description": "Returns the health status of the API server",
+        "responses": {
+          "200": {
+            "description": "API server is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-01-01T00:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api-docs": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Swagger UI documentation",
+        "description": "Returns the Swagger UI for API documentation",
+        "responses": {
+          "200": {
+            "description": "Swagger UI documentation page"
+          }
+        }
+      }
+    },
+    "/api/v1/users/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new user",
+        "description": "Creates a new user account and sends OTP to email for verification. If role is 'business', companyName and companyAddress are required.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["fullName", "email", "password", "confirmPassword", "phoneNumber", "role"],
+                "properties": {
+                  "fullName": {
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 30,
+                    "example": "John Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "john@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8,
+                    "maxLength": 30,
+                    "pattern": "^[a-zA-Z0-9]{8,30}$",
+                    "example": "SecurePass123",
+                    "description": "Password must be 8-30 characters and contain only letters and numbers"
+                  },
+                  "confirmPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "SecurePass123"
+                  },
+                  "companyName": {
+                    "type": "string",
+                    "description": "Required when role is 'business'",
+                    "example": "ABC Logistics Ltd"
+                  },
+                  "companyAddress": {
+                    "type": "object",
+                    "description": "Required when role is 'business'",
+                    "properties": {
+                      "street": {
+                        "type": "string",
+                        "example": "123 Business Street"
+                      },
+                      "city": {
+                        "type": "string",
+                        "example": "Lagos"
+                      },
+                      "state": {
+                        "type": "string",
+                        "example": "Lagos State"
+                      },
+                      "country": {
+                        "type": "string",
+                        "example": "Nigeria"
+                      }
+                    }
+                  },
+                  "phoneNumber": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9][0-9]{6,14}$",
+                    "example": "+1237144774545"
+                  },
+                  "phoneNumber2": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9][0-9]{6,14}$",
+                    "example": "+1988989874451"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["customer", "business", "admin", "driver"],
+                    "default": "customer",
+                    "example": "customer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully. OTP sent to email.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "An OTP has been sent to your email."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error - User already exists, passwords don't match, or invalid input"
+          }
+        }
+      }
+    },
+    "/api/v1/users/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login user",
+        "description": "Authenticates a user and returns JWT token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "john@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "pattern": "^[a-zA-Z0-9]{8,30}$",
+                    "example": "SecurePass123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Login Successful"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": {
+                          "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid credentials"
+          },
+          "401": {
+            "description": "Invalid email/password or account not verified"
+          },
+          "404": {
+            "description": "User does not exist"
+          }
+        }
+      }
+    },
+    "/api/v1/users/auth/verifyOtp": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Verify user OTP",
+        "description": "Verifies the OTP sent to user's email during registration",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "otp"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "john@example.com"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "maxLength": 6,
+                    "example": "123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP verified successfully. User account activated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Your Email has been verified successfully.."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": {
+                          "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "User already verified"
+          },
+          "401": {
+            "description": "Invalid or expired OTP"
+          },
+          "404": {
+            "description": "User does not exist"
+          }
+        }
+      }
+    },
+    "/api/v1/users/auth/resendOtp": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Resend OTP",
+        "description": "Resends OTP to user's email for account verification",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "john@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP resent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OTP resent to your email."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "User already verified"
+          },
+          "404": {
+            "description": "User does not exist"
+          }
+        }
+      }
+    },
+    "/api/v1/users/auth/forgotPassword": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Forgot password",
+        "description": "Sends password reset link to user's email",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "john@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset link sent to email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Reset Password Link sent to your email"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email is required"
+          },
+          "404": {
+            "description": "User does not exist"
+          },
+          "500": {
+            "description": "Error sending reset email"
+          }
+        }
+      }
+    },
+    "/api/v1/users/auth/resetPassword/{token}": {
+      "patch": {
+        "tags": ["Authentication"],
+        "summary": "Reset password",
+        "description": "Resets user password using the token from email. Token expires in 10 minutes.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Password reset token from email"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["password", "confirmPassword"],
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8,
+                    "maxLength": 30,
+                    "pattern": "^[a-zA-Z0-9]{8,30}$",
+                    "example": "NewSecurePass123",
+                    "description": "Password must be 8-30 characters and contain only letters and numbers"
+                  },
+                  "confirmPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "NewSecurePass123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password Reset Successful"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": {
+                          "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired token, or passwords don't match"
+          }
+        }
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "tags": ["User Profile"],
+        "summary": "Get current user profile",
+        "description": "Returns the authenticated user's profile information",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["User Profile"],
+        "summary": "Update user profile",
+        "description": "Updates the authenticated user's profile information. companyName and companyAddress can only be updated by users with 'business' role.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fullName": {
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 30,
+                    "example": "John Doe Updated"
+                  },
+                  "companyName": {
+                    "type": "string",
+                    "description": "Only allowed for users with 'business' role",
+                    "example": "New Company Name Ltd"
+                  },
+                  "companyAddress": {
+                    "type": "string",
+                    "description": "Only allowed for users with 'business' role",
+                    "example": "456 New Business Road, City, Country"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User Profile Updated"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Cannot update company fields without business role"
+          }
+        }
+      }
+    },
+    "/api/v1/users/updatePassword": {
+      "patch": {
+        "tags": ["User Profile"],
+        "summary": "Update user password",
+        "description": "Updates the authenticated user's password",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["currentPassword", "password", "confirmPassword"],
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8,
+                    "maxLength": 30,
+                    "pattern": "^[a-zA-Z0-9]{8,30}$",
+                    "example": "OldSecurePass123"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8,
+                    "maxLength": 30,
+                    "pattern": "^[a-zA-Z0-9]{8,30}$",
+                    "example": "NewSecurePass456",
+                    "description": "Password must be 8-30 characters and contain only letters and numbers"
+                  },
+                  "confirmPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "NewSecurePass456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password Updated Successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": {
+                          "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error - Passwords don't match"
+          },
+          "403": {
+            "description": "Incorrect current password"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/users/logout": {
+      "post": {
+        "tags": ["User Profile"],
+        "summary": "Logout user",
+        "description": "Logs out the authenticated user by clearing the JWT cookie",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logged out successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Logged out Successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/users/deleteAccount": {
+      "patch": {
+        "tags": ["User Profile"],
+        "summary": "Delete user account",
+        "description": "Deactivates the authenticated user's account (soft delete)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["password"],
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8,
+                    "maxLength": 30,
+                    "pattern": "^[a-zA-Z0-9]{8,30}$",
+                    "example": "SecurePass123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User Account deleted Successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Incorrect password"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/address": {
+      "get": {
+        "tags": ["Address"],
+        "summary": "Get all addresses",
+        "description": "Returns all addresses for the authenticated user, sorted by default address first. Maximum 3 addresses per user.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Addresses retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "example": 3
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "addresses": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Address"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No addresses found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Address"],
+        "summary": "Create new address",
+        "description": "Creates a new address for the authenticated user. Maximum 3 addresses allowed per user.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["street", "city", "state"],
+                "properties": {
+                  "street": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 120,
+                    "example": "123 Business Street"
+                  },
+                  "city": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 60,
+                    "example": "Lagos"
+                  },
+                  "state": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 60,
+                    "example": "Lagos State"
+                  },
+                  "label": {
+                    "type": "string",
+                    "enum": ["home", "work", "others"],
+                    "default": "home",
+                    "minLength": 2,
+                    "maxLength": 40,
+                    "example": "home"
+                  },
+                  "country": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100,
+                    "default": "Nigeria",
+                    "example": "Nigeria"
+                  },
+                  "postalCode": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9 ]+$",
+                    "example": "100001"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Address created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You Address has been saved Successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "address": {
+                          "$ref": "#/components/schemas/Address"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Maximum 3 addresses allowed per user"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/address/{addressId}": {
+      "patch": {
+        "tags": ["Address"],
+        "summary": "Update address",
+        "description": "Updates an existing address for the authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "addressId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Address ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "street": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 120,
+                    "example": "456 Updated Street"
+                  },
+                  "city": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 60,
+                    "example": "Victoria Island"
+                  },
+                  "state": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 60,
+                    "example": "Lagos State"
+                  },
+                  "label": {
+                    "type": "string",
+                    "enum": ["home", "work", "others"],
+                    "minLength": 2,
+                    "maxLength": 40,
+                    "example": "work"
+                  },
+                  "country": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100,
+                    "default": "Nigeria",
+                    "example": "Nigeria"
+                  },
+                  "postalCode": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9 ]+$",
+                    "example": "101233"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Address updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Address Updated Successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "address": {
+                          "$ref": "#/components/schemas/Address"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Address not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Address"],
+        "summary": "Delete address",
+        "description": "Deletes an address for the authenticated user. Cannot delete the only address.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "addressId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Address ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Address deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Address Deleted Successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot delete the only address"
+          },
+          "404": {
+            "description": "Address not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/address/{addressId}/set-default": {
+      "patch": {
+        "tags": ["Address"],
+        "summary": "Set default address",
+        "description": "Sets an address as the default address for the authenticated user. Only one default address allowed per user.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "addressId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Address ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default address updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Default address updated"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Address not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/v1/shipments/history/{userId}": {
       "get": {
         "summary": "Get shipment history for a user",
         "tags": ["Shipments"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -30,29 +1220,99 @@
             "name": "status",
             "required": false,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "enum": ["PENDING", "ASSIGNED", "PICKED_UP", "IN_TRANSIT", "DELIVERED", "CANCELLED"]
+            },
+            "description": "Filter by shipment status"
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter shipments from date"
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter shipments to date"
           },
           {
             "in": "query",
             "name": "page",
             "required": false,
             "schema": {
-              "type": "integer"
-            }
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number for pagination"
           },
           {
             "in": "query",
             "name": "limit",
             "required": false,
             "schema": {
-              "type": "integer"
-            }
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Number of items per page"
           }
         ],
         "responses": {
           "200": {
-            "description": "Shipment history retrieved successfully"
+            "description": "Shipment history retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer",
+                          "example": 50
+                        },
+                        "page": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "limit": {
+                          "type": "integer",
+                          "example": 10
+                        },
+                        "shipments": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Shipment"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -61,6 +1321,11 @@
       "patch": {
         "summary": "Cancel a shipment",
         "tags": ["Shipments"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -77,13 +1342,15 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["reason"],
                 "properties": {
                   "reason": {
                     "type": "string",
+                    "minLength": 3,
+                    "maxLength": 200,
                     "example": "Customer changed mind"
                   }
-                },
-                "required": ["reason"]
+                }
               }
             }
           }
@@ -106,6 +1373,11 @@
         "summary": "Generate invoice for a shipment",
         "deprecated": true,
         "tags": ["Shipments"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -127,6 +1399,11 @@
       "post": {
         "summary": "Create or fetch invoice for a shipment",
         "tags": ["Invoices"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -157,6 +1434,11 @@
       "get": {
         "summary": "Download invoice PDF for a shipment",
         "tags": ["Invoices"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -188,13 +1470,285 @@
         }
       }
     },
+    "/api/v1/admin/auth/register": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Register a new admin",
+        "description": "Creates a new admin user account. Only one admin can exist in the system.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["fullName", "email", "password", "confirmPassword", "phoneNumber"],
+                "properties": {
+                  "fullName": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 30,
+                    "example": "Admin User"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "admin@pickup.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8,
+                    "maxLength": 30,
+                    "pattern": "^[a-zA-Z0-9]{8,30}$",
+                    "example": "AdminSecurePass123",
+                    "description": "Password must be 8-30 characters and contain only letters and numbers"
+                  },
+                  "confirmPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "AdminSecurePass123"
+                  },
+                  "phoneNumber": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9][0-9]{6,14}$",
+                    "example": "+1234567890"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["customer", "business", "admin", "driver"],
+                    "default": "admin",
+                    "example": "admin"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Admin created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Admin Created Successfully."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error - Admin already exists, passwords don't match, or invalid input"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/auth/login": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Login admin",
+        "description": "Authenticates an admin user and returns JWT token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "admin@pickup.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "pattern": "^[a-zA-Z0-9]{8,30}$",
+                    "example": "AdminSecurePass123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Login Successful"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": {
+                          "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid credentials"
+          },
+          "401": {
+            "description": "Invalid email/password or account not verified"
+          },
+          "404": {
+            "description": "Admin does not exist"
+          }
+        }
+      }
+    },
     "/api/v1/admin/shipments": {
       "get": {
         "summary": "Get all shipments for admin monitoring",
         "tags": ["Admin"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "ASSIGNED", "PICKED_UP", "IN_TRANSIT", "DELIVERED", "CANCELLED"]
+            },
+            "description": "Filter by shipment status"
+          },
+          {
+            "in": "query",
+            "name": "assignedDriver",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by assigned driver ID"
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter shipments from date (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter shipments to date (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Number of items per page"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Admin shipment list retrieved successfully"
+            "description": "Admin shipment list retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "results": {
+                      "type": "integer",
+                      "example": 10
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer",
+                          "example": 100
+                        },
+                        "page": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "limit": {
+                          "type": "integer",
+                          "example": 10
+                        },
+                        "shipments": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Shipment"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
           }
         }
       }
@@ -203,6 +1757,11 @@
       "get": {
         "summary": "Get single shipment for admin",
         "tags": ["Admin"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -210,15 +1769,360 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Shipment ID"
           }
         ],
         "responses": {
           "200": {
-            "description": "Shipment retrieved successfully"
+            "description": "Shipment retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "shipment": {
+                          "$ref": "#/components/schemas/Shipment"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
             "description": "Shipment not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["customer", "business", "admin", "driver"],
+            "example": "customer"
+          },
+          "companyName": {
+            "type": "string",
+            "nullable": true,
+            "example": "ABC Logistics Ltd"
+          },
+          "companyAddress": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "street": {
+                "type": "string",
+                "example": "123 Business Street"
+              },
+              "city": {
+                "type": "string",
+                "example": "Lagos"
+              },
+              "state": {
+                "type": "string",
+                "example": "Lagos State"
+              },
+              "country": {
+                "type": "string",
+                "example": "Nigeria"
+              }
+            }
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1237144774545"
+          },
+          "phoneNumber2": {
+            "type": "string",
+            "example": "+1988989874451"
+          },
+          "isVerified": {
+            "type": "boolean",
+            "example": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "profileCompleted": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "user": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "street": {
+            "type": "string",
+            "example": "123 Business Street"
+          },
+          "city": {
+            "type": "string",
+            "example": "Lagos"
+          },
+          "state": {
+            "type": "string",
+            "example": "Lagos State"
+          },
+          "country": {
+            "type": "string",
+            "example": "Nigeria"
+          },
+          "label": {
+            "type": "string",
+            "enum": ["home", "work", "others"],
+            "example": "home"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "100001"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "Shipment": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "shipmentCode": {
+            "type": "string",
+            "example": "SHP-2024-001"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "fullName": {
+                "type": "string",
+                "example": "John Doe"
+              },
+              "email": {
+                "type": "string",
+                "example": "john@example.com"
+              },
+              "role": {
+                "type": "string",
+                "example": "customer"
+              }
+            }
+          },
+          "assignedDriver": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "fullName": {
+                "type": "string",
+                "example": "Driver Name"
+              },
+              "email": {
+                "type": "string",
+                "example": "driver@example.com"
+              },
+              "role": {
+                "type": "string",
+                "example": "driver"
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "ASSIGNED", "PICKED_UP", "IN_TRANSIT", "DELIVERED", "CANCELLED"],
+            "example": "PENDING"
+          },
+          "pickupAddress": {
+            "type": "string",
+            "example": "123 Pickup Street, Lagos"
+          },
+          "dropoffAddress": {
+            "type": "string",
+            "example": "456 Delivery Avenue, Abuja"
+          },
+          "packageType": {
+            "type": "string",
+            "example": "box"
+          },
+          "weight": {
+            "type": "number",
+            "example": 5.5
+          },
+          "price": {
+            "type": "number",
+            "example": 5000
+          },
+          "currency": {
+            "type": "string",
+            "example": "NGN"
+          },
+          "invoiceGenerated": {
+            "type": "boolean",
+            "example": false
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "nullable": true,
+            "example": "INV-2024-001"
+          },
+          "cancelReason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Customer changed mind"
+          },
+          "cancelledAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        }
+      },
+      "Invoice": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "shipment": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "example": "INV-2024-001"
+          },
+          "amount": {
+            "type": "number",
+            "example": 5000
+          },
+          "currency": {
+            "type": "string",
+            "example": "NGN"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ISSUED"],
+            "example": "ISSUED"
+          },
+          "customerSnapshot": {
+            "type": "object",
+            "properties": {
+              "fullName": {
+                "type": "string",
+                "example": "John Doe"
+              },
+              "email": {
+                "type": "string",
+                "example": "john@example.com"
+              },
+              "companyName": {
+                "type": "string",
+                "nullable": true,
+                "example": "ABC Logistics Ltd"
+              }
+            }
+          },
+          "shipmentSnapshot": {
+            "type": "object",
+            "properties": {
+              "shipmentCode": {
+                "type": "string",
+                "example": "SHP-2024-001"
+              },
+              "pickupAddress": {
+                "type": "string",
+                "example": "123 Pickup Street, Lagos"
+              },
+              "dropoffAddress": {
+                "type": "string",
+                "example": "456 Delivery Avenue, Abuja"
+              },
+              "packageType": {
+                "type": "string",
+                "example": "box"
+              },
+              "weight": {
+                "type": "number",
+                "example": 5.5
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
           }
         }
       }
