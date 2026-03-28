@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --forceExit",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "start": "node dist/server.js",
