@@ -64,20 +64,6 @@ const ShipmentTrackingSchema = new Schema(
         },
         timeline: [TrackingEventSchema],
         pod: PODSchema,
-        notifications: [
-            {
-                type: Schema.Types.ObjectId,
-                ref: 'Notification'
-            }
-        ],
-        estimatedDelivery: {
-            type: Date
-        },
-        assignedDriver: {
-            type: Schema.Types.ObjectId,
-            ref: 'User',
-            default: null
-        },
         user: {
             type: Schema.Types.ObjectId,
             ref: 'User',
@@ -100,7 +86,7 @@ export interface IShipmentTracking extends Document {
   timeline: Array<{
     status: ShipmentStatus;
     note?: string;
-    updatedBy?: mongoose.Types.ObjectId ;
+    updatedBy?: mongoose.Types.ObjectId;
     timestamp: Date;
   }>;
   pod?: {
@@ -109,11 +95,11 @@ export interface IShipmentTracking extends Document {
     uploadedBy?: mongoose.Types.ObjectId;
     recipientName?: string;
   };
-  notifications: mongoose.Types.ObjectId[];
+  //notifications: mongoose.Types.ObjectId[];
   estimatedDelivery?: Date;
   assignedDriver?: mongoose.Types.ObjectId | null;
   user: mongoose.Types.ObjectId;
-  socketRoomId?: string;
+  socketRoomId: string;
 }
 
 export const ShipmentTracking = mongoose.model<IShipmentTracking>("ShipmentTracking", ShipmentTrackingSchema);

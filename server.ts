@@ -25,19 +25,20 @@ registerEventListeners();
 const port = process.env.PORT || 3000;
 
 const server = app.listen(port, () => {
-  console.log(`App is running on port ${port}`);
+    console.log(`App is running on port ${port} `);
 });
+
 
 initSocket(server);
 
 process.on("unhandledRejection", (err) => {
-  console.log("UNHANDLED REJECTION...... SHUTTING DOWN !!!!");
-  if (err instanceof Error) {
-    console.log(err.stack);
-    console.log(err.name);
-    console.log(err.message);
-  }
-  server.close(() => {
-    process.exit(1);
-  });
-});
+    console.log("UNHANDLED REJECTION...... SHUTTING DOWN !!!!")
+    if (err instanceof Error) {
+        console.log(err.stack)
+        console.log(err.name);
+        console.log(err.message);
+      }
+    server.close(() => {
+         process.exit(1)
+     })
+})

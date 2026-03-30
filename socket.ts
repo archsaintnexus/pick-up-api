@@ -20,6 +20,20 @@ export const initSocket = (server: HttpServer) => {
       console.log(`User ${userId} registered with socket ${socket.id}`);
     });
 
+    //Room
+    socket.on("join_tracking_room", (trackingNumber: string) => {
+      const roomId = `tracking_${trackingNumber}`
+      socket.join(roomId)
+      console.log(`Client joined room: ${roomId}`);
+
+      socket.emit("joined_room", { roomId, trackingNumber })
+    });
+
+    socket.on("leave_tracking_room", (trackingNumber: string) => {
+      const roomId = `tracking_${trackingNumber}`;
+      socket.leave(roomId);
+    });
+
     socket.on("disconnect", () => {
       console.log("Socket disconnected:", socket.id);
 
