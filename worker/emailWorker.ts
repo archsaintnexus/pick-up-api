@@ -4,9 +4,10 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 import { Worker } from "bullmq";
+import type { ConnectionOptions } from "bullmq";
 import EmailService from "../services/Email.js";
 
-const connection = process.env.REDIS_URL
+const connection: ConnectionOptions = process.env.REDIS_URL
   ? { url: process.env.REDIS_URL }
   : {
       host: process.env.REDIS_HOST || "127.0.0.1",
@@ -57,8 +58,8 @@ const emailWorker = new Worker(
   {
     connection:
       process.env.NODE_ENV === "test"
-        ? { host: "127.0.0.1", port: 6379, family: 4 }
-        : (connection as any),
+        ? ({ host: "127.0.0.1", port: 6379, family: 4 } as ConnectionOptions)
+        : connection,
   }
 );
 

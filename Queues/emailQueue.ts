@@ -4,8 +4,9 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 import { Queue } from "bullmq";
+import type { ConnectionOptions } from "bullmq";
 
-const connection = process.env.REDIS_URL
+const connection: ConnectionOptions = process.env.REDIS_URL
   ? { url: process.env.REDIS_URL }
   : {
       host: process.env.REDIS_HOST || "127.0.0.1",
@@ -18,8 +19,8 @@ const connection = process.env.REDIS_URL
 const emailQueue = new Queue("emailQueue", {
   connection:
     process.env.NODE_ENV === "test"
-      ? { host: "127.0.0.1", port: 6379, family: 4 }
-      : (connection as any),
+      ? ({ host: "127.0.0.1", port: 6379, family: 4 } as ConnectionOptions)
+      : connection,
 });
 
 export default emailQueue;
