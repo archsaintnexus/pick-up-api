@@ -5,12 +5,12 @@
   "main": "server.ts",
   "type": "module",
   "scripts": {
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --forceExit ",
-    "build": "npx tsc",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --forceExit",
+    "build": "tsc",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "start": "npx tsc && node dist/server.js",
-    "start:worker": "npx tsc && node dist/worker/emailWorker.js",
+    "start": "node dist/server.js",
+    "start:worker": "node dist/worker/emailWorker.js",
     "dev": "nodemon --exec tsx server.ts",
     "dev:worker": "nodemon --exec tsx worker/emailWorker.ts",
     "prod": "NODE_ENV=production node dist/server.js"
