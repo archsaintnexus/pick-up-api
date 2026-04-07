@@ -7,6 +7,7 @@ import app from "./app.js";
 import connectDB from "./db.js";
 import { initSocket } from "./socket.js";
 import { registerEventListeners } from "./events/registerEventListeners.js";
+import "./worker/emailWorker.js";
 
 process.on("uncaughtException", (err) => {
   console.log("UNCAUGHT EXCEPTION... SHUTTING DOWN!!!");
