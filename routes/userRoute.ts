@@ -1,6 +1,6 @@
 import express from "express"
 
-import { forgotPassword,  login, logOut, register, resendOtp, resetPassword, updatePassword, verifyOtp } from "../controller/authController.js"
+import { forgotPassword,  login, logOut, register, resendOtp, resetPassword, resetPasswordPage, submitResetPasswordPage, updatePassword, verifyOtp } from "../controller/authController.js"
 import validator from "../middleware/validator.js"
 import { createLoginSchema, createUserSchema, deleteAccountSchema, forgotPasswordSchema, OtpSchema, resendOtpSchema, resetPasswordSchema, updatePasswordSchema, updateUserSchema } from "../SchemaTypes/userSchema.js"
 import { passwordLimiter, resendOtpLimiter, verifyOtpLimiter } from "../middleware/limiter.js"
@@ -17,6 +17,8 @@ router.post("/auth/login", validator(createLoginSchema),passwordLimiter, login)
 router.post("/auth/verifyOtp",verifyOtpLimiter,validator(OtpSchema), verifyOtp)
 router.post("/auth/resendOtp",resendOtpLimiter,validator(resendOtpSchema),resendOtp)
 router.post("/auth/forgotPassword",validator(forgotPasswordSchema), passwordLimiter,forgotPassword)
+router.get("/auth/resetPassword/:token", resetPasswordPage)
+router.post("/auth/resetPassword/:token", submitResetPasswordPage)
 router.patch("/auth/resetPassword/:token",validator(resetPasswordSchema),passwordLimiter,resetPassword)
 
 // this makes this route unaccessible to users that are not logged in
