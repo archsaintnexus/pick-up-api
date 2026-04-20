@@ -1197,6 +1197,280 @@
         }
       }
     },
+    "/api/v1/shipments/pickups/estimate": {
+      "post": {
+        "summary": "Estimate pickup price",
+        "tags": ["Shipments"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["packageType", "weight"],
+                "properties": {
+                  "packageType": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 80,
+                    "example": "parcel",
+                    "description": "Package type (document, parcel, fragile, electronics, bulk)"
+                  },
+                  "weight": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000,
+                    "example": 5,
+                    "description": "Weight in kg"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Price estimate returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "estimatesPrice": {
+                          "type": "number",
+                          "example": 5175
+                        },
+                        "currency": {
+                          "type": "string",
+                          "example": "NGN"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/shipments/pickups": {
+      "post": {
+        "summary": "Create a single pickup",
+        "description": "Creates a new shipment pickup. Customers can only have one active pickup at a time. Drivers cannot create pickups.",
+        "tags": ["Shipments"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["pickupAddress", "dropoffAddress", "packageType", "weight"],
+                "properties": {
+                  "pickupAddress": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 200,
+                    "example": "123 Pickup Street, Lagos"
+                  },
+                  "dropoffAddress": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 200,
+                    "example": "456 Delivery Avenue, Abuja"
+                  },
+                  "packageType": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 80,
+                    "example": "parcel"
+                  },
+                  "weight": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000,
+                    "example": 5
+                  },
+                  "currency": {
+                    "type": "string",
+                    "maxLength": 3,
+                    "example": "NGN"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pickup created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "shipment": {
+                          "$ref": "#/components/schemas/Shipment"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Drivers cannot create pickups"
+          },
+          "409": {
+            "description": "Customer already has an active pickup"
+          }
+        }
+      }
+    },
+    "/api/v1/shipments/pickups/bulk": {
+      "post": {
+        "summary": "Create bulk pickups",
+        "description": "Creates multiple shipment pickups at once. Only available to business and admin accounts.",
+        "tags": ["Shipments"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["pickups"],
+                "properties": {
+                  "pickups": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 50,
+                    "items": {
+                      "type": "object",
+                      "required": ["pickupAddress", "dropoffAddress", "packageType", "weight"],
+                      "properties": {
+                        "pickupAddress": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 200,
+                          "example": "123 Pickup Street, Lagos"
+                        },
+                        "dropoffAddress": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 200,
+                          "example": "456 Delivery Avenue, Abuja"
+                        },
+                        "packageType": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 80,
+                          "example": "parcel"
+                        },
+                        "weight": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1000,
+                          "example": 5
+                        },
+                        "currency": {
+                          "type": "string",
+                          "maxLength": 3,
+                          "example": "NGN"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bulk pickups created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "shipments": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Shipment"
+                          }
+                        },
+                        "totalPrice": {
+                          "type": "number",
+                          "example": 15525
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Only business and admin accounts"
+          }
+        }
+      }
+    },
     "/api/v1/shipments/history/{userId}": {
       "get": {
         "summary": "Get shipment history for a user",
@@ -1391,6 +1665,280 @@
         "responses": {
           "200": {
             "description": "Invoice generated successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/shipments/{shipmentId}/assign": {
+      "post": {
+        "summary": "Assign a driver to a shipment",
+        "description": "Assigns a driver to a PENDING shipment. Transitions status to ASSIGNED. Admin only.",
+        "tags": ["Shipments"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shipmentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["driverId"],
+                "properties": {
+                  "driverId": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{24}$",
+                    "example": "507f1f77bcf86cd799439011"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Driver assigned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Driver assigned successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "shipment": {
+                          "$ref": "#/components/schemas/Shipment"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Only PENDING shipments can be assigned / User is not a driver"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          },
+          "404": {
+            "description": "Shipment or driver not found"
+          }
+        }
+      }
+    },
+    "/api/v1/shipments/{shipmentId}/pickup": {
+      "post": {
+        "summary": "Mark shipment as picked up",
+        "description": "Transitions shipment status from ASSIGNED to PICKED_UP. Driver or admin only.",
+        "tags": ["Shipments"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shipmentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shipment picked up successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Shipment picked up successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "shipment": {
+                          "$ref": "#/components/schemas/Shipment"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status transition"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Driver or admin access required"
+          },
+          "404": {
+            "description": "Shipment not found"
+          }
+        }
+      }
+    },
+    "/api/v1/shipments/{shipmentId}/transit": {
+      "post": {
+        "summary": "Mark shipment as in transit",
+        "description": "Transitions shipment status from PICKED_UP to IN_TRANSIT. Driver or admin only.",
+        "tags": ["Shipments"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shipmentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shipment is in transit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Shipment is in transit"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "shipment": {
+                          "$ref": "#/components/schemas/Shipment"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status transition"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Driver or admin access required"
+          },
+          "404": {
+            "description": "Shipment not found"
+          }
+        }
+      }
+    },
+    "/api/v1/shipments/{shipmentId}/deliver": {
+      "post": {
+        "summary": "Mark shipment as delivered",
+        "description": "Transitions shipment status from IN_TRANSIT to DELIVERED. Driver or admin only.",
+        "tags": ["Shipments"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shipmentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shipment delivered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Shipment delivered successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "shipment": {
+                          "$ref": "#/components/schemas/Shipment"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status transition"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Driver or admin access required"
+          },
+          "404": {
+            "description": "Shipment not found"
           }
         }
       }

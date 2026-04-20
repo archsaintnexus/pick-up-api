@@ -13,3 +13,12 @@ export type InvoiceGeneratedEventPayload = {
   userId: string;
   email: string;
 };
+
+export type ShipmentStatusChangedEventPayload = {
+  shipmentId: string;
+  shipmentCode: string;
+  userId: string;
+  email: string;
+  status: string;
+  driverId?: string;
+};

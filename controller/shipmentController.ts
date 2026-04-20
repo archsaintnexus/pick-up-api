@@ -3,6 +3,14 @@ import Shipment from "../models/shipmentModel.js";
 import ErrorClass from "../utils/ErrorClass.js";
 import { createShipmentInvoice } from "../services/invoiceService.js";
 import { shipmentHistoryQuerySchema } from "../SchemaTypes/shipmentSchema.js";
+import {
+  createBulkPickup,
+  createSinglePickup,
+  estimatedShipmentPrice,
+  assignDriverToShipment,
+  updateShipmentStatus,
+} from "../services/shipmentService.js";
+import { createAuditLog } from "../services/auditService.js";
 import eventBus from "../events/eventBus.js";
 
 type PopulatedUser = {
@@ -11,10 +19,71 @@ type PopulatedUser = {
   fullName?: string;
 };
 
+export const estimatePickupPrice = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { weight, packageType } = req.body;
+    const estimatesPrice = estimatedShipmentPrice(weight, packageType);
+    res.status(200).json({
+      status: "success",
+      data: {
+        estimatesPrice,
+        currency: "NGN",
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createPickup = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const shipment = await createSinglePickup({
+      ...req.body,
+      user: req.user!.id,
+    });
+    res.status(201).json({
+      status: "success",
+      data: {
+        shipment,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createBulkPickups = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { pickups } = req.body;
+    if (!pickups || !Array.isArray(pickups) || pickups.length === 0) {
+      throw new ErrorClass("Pickups array is required", 400);
+    }
+    const { shipments, totalPrice } = await createBulkPickup({ user: req.user!.id, pickups });
+
+    res
+      .status(201)
+      .json({ status: "success", data: { shipments, totalPrice } });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getShipmentHistory = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { error, value } = shipmentHistoryQuerySchema.validate(req.query, {
@@ -73,10 +142,10 @@ export const getShipmentHistory = async (
 export const cancelShipment = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
-    const { shipmentId } = req.params;
+    const shipmentId = req.params.shipmentId!;
     const { reason } = req.body;
 
     const shipment = await Shipment.findById(shipmentId).populate(
@@ -90,7 +159,7 @@ export const cancelShipment = async (
 
     if (!["PENDING", "ASSIGNED"].includes(shipment.status)) {
       return next(
-        new ErrorClass("Shipment cannot be cancelled at this stage", 400)
+        new ErrorClass("Shipment cannot be cancelled at this stage", 400),
       );
     }
 
@@ -129,10 +198,10 @@ export const cancelShipment = async (
 export const generateInvoice = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
-    const { shipmentId } = req.params;
+    const shipmentId = req.params.shipmentId!;
 
     if (!shipmentId) {
       return next(new ErrorClass("Shipment ID is required", 400));
@@ -168,6 +237,217 @@ export const generateInvoice = async (
       data: {
         invoice,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const assignDriver = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const shipmentId = req.params.shipmentId!;
+    const { driverId } = req.body;
+
+    if (!driverId) {
+      return next(new ErrorClass("Driver ID is required", 400));
+    }
+
+    const shipment = await assignDriverToShipment(shipmentId, driverId);
+
+    await createAuditLog({
+      actorId: req.user?.id ?? null,
+      action: "ASSIGN_DRIVER",
+      entity: "Shipment",
+      entityId: shipment._id.toString(),
+      metadata: {
+        shipmentCode: shipment.shipmentCode,
+        driverId,
+      },
+    });
+
+    const populatedShipment = await Shipment.findById(shipment._id).populate(
+      "user",
+      "email fullName"
+    );
+
+    if (populatedShipment) {
+      const populatedUser = populatedShipment.user as unknown as {
+        _id: string;
+        email: string;
+        fullName?: string;
+      };
+
+      eventBus.emit("shipment.status_changed", {
+        shipmentId: String(shipment._id),
+        shipmentCode: shipment.shipmentCode,
+        userId: String(populatedUser._id),
+        email: populatedUser.email,
+        status: "ASSIGNED",
+        driverId,
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Driver assigned successfully",
+      data: { shipment },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const markPickedUp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const shipmentId = req.params.shipmentId!;
+
+    const shipment = await updateShipmentStatus(shipmentId, "PICKED_UP");
+
+    await createAuditLog({
+      actorId: req.user?.id ?? null,
+      action: "MARK_PICKED_UP",
+      entity: "Shipment",
+      entityId: shipment._id.toString(),
+      metadata: {
+        shipmentCode: shipment.shipmentCode,
+      },
+    });
+
+    const populatedShipment = await Shipment.findById(shipment._id).populate(
+      "user",
+      "email fullName"
+    );
+
+    if (populatedShipment) {
+      const populatedUser = populatedShipment.user as unknown as {
+        _id: string;
+        email: string;
+        fullName?: string;
+      };
+
+      eventBus.emit("shipment.status_changed", {
+        shipmentId: String(shipment._id),
+        shipmentCode: shipment.shipmentCode,
+        userId: String(populatedUser._id),
+        email: populatedUser.email,
+        status: "PICKED_UP",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Shipment picked up successfully",
+      data: { shipment },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const markInTransit = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const shipmentId = req.params.shipmentId!;
+
+    const shipment = await updateShipmentStatus(shipmentId, "IN_TRANSIT");
+
+    await createAuditLog({
+      actorId: req.user?.id ?? null,
+      action: "MARK_IN_TRANSIT",
+      entity: "Shipment",
+      entityId: shipment._id.toString(),
+      metadata: {
+        shipmentCode: shipment.shipmentCode,
+      },
+    });
+
+    const populatedShipment = await Shipment.findById(shipment._id).populate(
+      "user",
+      "email fullName"
+    );
+
+    if (populatedShipment) {
+      const populatedUser = populatedShipment.user as unknown as {
+        _id: string;
+        email: string;
+        fullName?: string;
+      };
+
+      eventBus.emit("shipment.status_changed", {
+        shipmentId: String(shipment._id),
+        shipmentCode: shipment.shipmentCode,
+        userId: String(populatedUser._id),
+        email: populatedUser.email,
+        status: "IN_TRANSIT",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Shipment is in transit",
+      data: { shipment },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const markDelivered = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const shipmentId = req.params.shipmentId!;
+
+    const shipment = await updateShipmentStatus(shipmentId, "DELIVERED");
+
+    await createAuditLog({
+      actorId: req.user?.id ?? null,
+      action: "MARK_DELIVERED",
+      entity: "Shipment",
+      entityId: shipment._id.toString(),
+      metadata: {
+        shipmentCode: shipment.shipmentCode,
+      },
+    });
+
+    const populatedShipment = await Shipment.findById(shipment._id).populate(
+      "user",
+      "email fullName"
+    );
+
+    if (populatedShipment) {
+      const populatedUser = populatedShipment.user as unknown as {
+        _id: string;
+        email: string;
+        fullName?: string;
+      };
+
+      eventBus.emit("shipment.status_changed", {
+        shipmentId: String(shipment._id),
+        shipmentCode: shipment.shipmentCode,
+        userId: String(populatedUser._id),
+        email: populatedUser.email,
+        status: "DELIVERED",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Shipment delivered successfully",
+      data: { shipment },
     });
   } catch (error) {
     next(error);
