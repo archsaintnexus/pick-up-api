@@ -1,5 +1,6 @@
 module.exports = {
   preset: "ts-jest/presets/default-esm",
+  globalSetup: "<rootDir>/tests/globalSetup.cjs",
   testEnvironment: "node",
   roots: ["<rootDir>/tests"],
   testMatch: ["**/*.test.ts"],
@@ -15,6 +16,9 @@ module.exports = {
     ],
   },
   moduleNameMapper: {
+    ".*Queues/emailQueue.*": "<rootDir>/tests/__mocks__/emailQueue.ts",
+    ".*services/redis.*": "<rootDir>/tests/__mocks__/redis.ts",
+    ".*middleware/protector.*": "<rootDir>/tests/__mocks__/protector.ts",
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
   clearMocks: true,
