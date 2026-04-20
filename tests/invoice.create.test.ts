@@ -2,7 +2,6 @@ process.env.NODE_ENV = "test";
 
 import request from "supertest";
 import app from "../app.js";
-import mongoose from "mongoose";
 import {
   connectTestDB,
   closeTestDB,
@@ -11,7 +10,6 @@ import {
 } from "./setup.js";
 import User from "../models/userModel.js";
 import Shipment from "../models/shipmentModel.js";
-import Invoice from "../models/invoiceModel.js";
 
 describe("Create Invoice Endpoint", () => {
   let shipmentId: string;

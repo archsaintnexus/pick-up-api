@@ -23,11 +23,14 @@ export default [
   },
 
   {
-    files: ["*.config.cjs", "*.config.js", "jest.config.cjs"],
+    files: ["*.config.cjs", "*.config.js", "jest.config.cjs", "tests/**/*.cjs"],
     languageOptions: {
       globals: {
         ...globals.node,
       },
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
     },
   },
 ];
