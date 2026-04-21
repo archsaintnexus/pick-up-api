@@ -6,6 +6,13 @@ const pickupPayloadSchema = joi.object({
   packageType: joi.string().trim().min(2).max(80).required(),
   weight: joi.number().positive().max(1000).required(),
   currency: joi.string().trim().uppercase().length(3).optional(),
+  vehicleType: joi.string().valid("motorcycle", "car", "van", "truck").required(),
+  recipientName: joi.string().trim().min(1).max(100).required(),
+  recipientPhone: joi.string().trim().min(7).max(20).required(),
+  pickupDate: joi.date().greater("now").required(),
+  timeWindow: joi.string().trim().min(1).max(50).required(),
+  quantity: joi.number().integer().min(1).default(1),
+  specialInstructions: joi.string().trim().max(500).optional(),
 });
 
 const objectIdPattern = /^[0-9a-fA-F]{24}$/;
@@ -43,6 +50,13 @@ export const createPickupSchema = joi.object({
   packageType: joi.string().trim().min(2).max(80).required(),
   weight: joi.number().positive().max(1000).required(),
   currency: joi.string().trim().uppercase().length(3).optional(),
+  vehicleType: joi.string().valid("motorcycle", "car", "van", "truck").required(),
+  recipientName: joi.string().trim().min(1).max(100).required(),
+  recipientPhone: joi.string().trim().min(7).max(20).required(),
+  pickupDate: joi.date().greater("now").required(),
+  timeWindow: joi.string().trim().min(1).max(50).required(),
+  quantity: joi.number().integer().min(1).default(1),
+  specialInstructions: joi.string().trim().max(500).optional(),
 });
 
 export const createBulkPickupsSchema = joi.object({
@@ -56,4 +70,9 @@ export const estimatePickupPriceSchema = joi.object({
 
 export const assignDriverSchema = joi.object({
   driverId: joi.string().trim().pattern(objectIdPattern).required(),
+});
+
+export const createRatingSchema = joi.object({
+  rating: joi.number().integer().min(1).max(5).required(),
+  comment: joi.string().trim().max(500).optional(),
 });

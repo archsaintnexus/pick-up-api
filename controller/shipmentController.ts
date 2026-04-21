@@ -9,7 +9,9 @@ import {
   estimatedShipmentPrice,
   assignDriverToShipment,
   updateShipmentStatus,
+  getShipmentStats,
 } from "../services/shipmentService.js";
+import { createRating } from "../services/ratingService.js";
 import { createAuditLog } from "../services/auditService.js";
 import eventBus from "../events/eventBus.js";
 
@@ -398,6 +400,40 @@ export const markInTransit = async (
       message: "Shipment is in transit",
       data: { shipment },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { userId } = req.params;
+    const stats = await getShipmentStats(userId!);
+    res.status(200).json({ status: "success", data: { stats } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const submitRating = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { shipmentId } = req.params;
+    const { rating, comment } = req.body;
+    const result = await createRating({
+      shipmentId: shipmentId!,
+      userId: req.user!.id,
+      rating,
+      comment,
+    });
+    res.status(201).json({ status: "success", data: { rating: result } });
   } catch (error) {
     next(error);
   }

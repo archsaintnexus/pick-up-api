@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Shipment from "../models/shipmentModel.js";
 import User from "../models/userModel.js";
+import DriverProfile from "../models/driverProfileModel.js";
 import ErrorClass from "../utils/ErrorClass.js";
 import { generateShipmentId } from "../utils/shipmentId.js";
 import type { ShipmentStatus } from "../constants/shipmentStatus.js";
@@ -12,6 +13,13 @@ type PickupInput = {
   packageType: string;
   weight: number;
   currency?: string;
+  vehicleType: "motorcycle" | "car" | "van" | "truck";
+  recipientName: string;
+  recipientPhone: string;
+  pickupDate: Date;
+  timeWindow: string;
+  quantity?: number;
+  specialInstructions?: string;
 };
 
 type BulkPickupInput = {
@@ -68,6 +76,13 @@ export const createSinglePickup = async (payload: PickupInput) => {
     weight: payload.weight,
     currency: payload.currency ?? "NGN",
     price: estimatedShipmentPrice(payload.weight, payload.packageType),
+    vehicleType: payload.vehicleType,
+    recipientName: payload.recipientName.trim(),
+    recipientPhone: payload.recipientPhone.trim(),
+    pickupDate: payload.pickupDate,
+    timeWindow: payload.timeWindow.trim(),
+    quantity: payload.quantity ?? 1,
+    specialInstructions: payload.specialInstructions?.trim() ?? null,
   });
   return shipment;
 };
@@ -95,6 +110,13 @@ export const createBulkPickup = async (payload: BulkPickupInput) => {
     weight: pickup.weight,
     currency: pickup.currency ?? "NGN",
     price: estimatedShipmentPrice(pickup.weight, pickup.packageType),
+    vehicleType: pickup.vehicleType,
+    recipientName: pickup.recipientName.trim(),
+    recipientPhone: pickup.recipientPhone.trim(),
+    pickupDate: pickup.pickupDate,
+    timeWindow: pickup.timeWindow.trim(),
+    quantity: pickup.quantity ?? 1,
+    specialInstructions: pickup.specialInstructions?.trim() ?? null,
   }));
 
   const createShipments = await Shipment.insertMany(shipments);
@@ -129,6 +151,18 @@ export const assignDriverToShipment = async (
 
   if (driver.role !== "driver") {
     throw new ErrorClass("User is not a driver", 400);
+  }
+
+  const driverProfile = await DriverProfile.findOne({ user: driverId });
+  if (!driverProfile) {
+    throw new ErrorClass(
+      "Driver must be onboarded before assignment",
+      400,
+    );
+  }
+
+  if (!driverProfile.isAvailable) {
+    throw new ErrorClass("Driver is not currently available", 400);
   }
 
   shipment.assignedDriver = new mongoose.Types.ObjectId(driverId);
@@ -168,4 +202,17 @@ export const updateShipmentStatus = async (
   await shipment.save();
 
   return shipment;
+};
+
+const ACTIVE_STATUSES = ["PENDING", "ASSIGNED", "PICKED_UP", "IN_TRANSIT"];
+
+export const getShipmentStats = async (userId: string) => {
+  const [total, active, delivered, cancelled] = await Promise.all([
+    Shipment.countDocuments({ user: userId }),
+    Shipment.countDocuments({ user: userId, status: { $in: ACTIVE_STATUSES } }),
+    Shipment.countDocuments({ user: userId, status: "DELIVERED" }),
+    Shipment.countDocuments({ user: userId, status: "CANCELLED" }),
+  ]);
+
+  return { total, active, delivered, cancelled };
 };

@@ -15,6 +15,9 @@ import shipmentRouter from "./routes/shipmentRoute.js";
 //import adminShipmentRouter from "./routes/adminShipmentRoute.js";
 import trackingRouter from "./routes/shipmentTrackingRoute.js"
 import invoiceRouter from "./routes/invoiceRoute.js";
+import driverRouter from "./routes/driverRoute.js";
+import vehicleRouter from "./routes/vehicleRoute.js";
+import paymentRouter from "./routes/paymentRoute.js";
 
 
 // to handle errors
@@ -67,6 +70,9 @@ app.use("/api/v1/shipments", shipmentRouter);
 app.use("/api/v1/tracking", trackingRouter);
 //app.use("/api/v1/admin", adminShipmentRouter);
 app.use("/api/v1/invoices", invoiceRouter);
+app.use("/api/v1/drivers", driverRouter);
+app.use("/api/v1/vehicles", vehicleRouter);
+app.use("/api/v1/payments", paymentRouter);
 
 app.use((req, res, next) => {
   next(new ErrorClass(`Can't find route ${req.originalUrl} on this server!!`, 404));
