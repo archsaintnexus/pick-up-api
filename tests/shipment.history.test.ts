@@ -35,6 +35,11 @@ describe("Shipment History", () => {
       weight: 2,
       price: 5000,
       currency: "NGN",
+      vehicleType: "car",
+      recipientName: "Jane Doe",
+      recipientPhone: "+2348012345678",
+      pickupDate: new Date(Date.now() + 86400000),
+      timeWindow: "9:00 AM - 12:00 PM",
     };
 
     await Shipment.create([

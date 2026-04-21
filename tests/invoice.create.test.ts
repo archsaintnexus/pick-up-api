@@ -32,7 +32,7 @@ describe("Create Invoice Endpoint", () => {
 
     const shipment = await Shipment.create({
       shipmentCode: `PU-${Date.now()}`,
-      user: TEST_USER_ID, 
+      user: TEST_USER_ID,
       status: "PENDING",
       pickupAddress: "Ikeja",
       dropoffAddress: "Lekki",
@@ -41,6 +41,11 @@ describe("Create Invoice Endpoint", () => {
       price: 5000,
       currency: "NGN",
       invoiceGenerated: false,
+      vehicleType: "car",
+      recipientName: "Jane Doe",
+      recipientPhone: "+2348012345678",
+      pickupDate: new Date(Date.now() + 86400000),
+      timeWindow: "9:00 AM - 12:00 PM",
     });
 
     shipmentId = String(shipment._id);
