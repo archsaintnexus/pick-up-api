@@ -135,3 +135,41 @@ export const notifyInvoiceGenerated = async ({
     data: { invoiceNumber },
   });
 };
+
+export const notifyShipmentStatusChanged = async ({
+  userId,
+  email,
+  shipmentCode,
+  status,
+  driverId,
+}: {
+  userId: string;
+  email: string;
+  shipmentCode: string;
+  status: string;
+  driverId?: string;
+}) => {
+  const statusMessages: Record<string, string> = {
+    ASSIGNED: "A driver has been assigned to your shipment",
+    PICKED_UP: "Your shipment has been picked up",
+    IN_TRANSIT: "Your shipment is on the way",
+    DELIVERED: "Your shipment has been delivered",
+    CANCELLED: "Your shipment has been cancelled",
+  };
+
+  const message =
+    statusMessages[status] ?? `Shipment status updated to ${status}`;
+
+  await sendEmailNotification({
+    to: email,
+    subject: `Shipment Status Update: ${status}`,
+    message: `${message} (${shipmentCode})`,
+  });
+
+  await sendPushNotification({
+    userId,
+    event: "shipment.status_changed",
+    message,
+    data: { shipmentCode, status, driverId },
+  });
+};

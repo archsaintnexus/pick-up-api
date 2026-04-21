@@ -8,6 +8,7 @@ import {
   createBulkPickupsSchema,
   estimatePickupPriceSchema,
   assignDriverSchema,
+  createRatingSchema,
 } from "../SchemaTypes/shipmentSchema.js";
 
 import {
@@ -21,6 +22,8 @@ import {
   markPickedUp,
   markInTransit,
   markDelivered,
+  getStats,
+  submitRating,
 } from "../controller/shipmentController.js";
 import { validateShippingTrackingSchema } from "../SchemaTypes/shipmentTrackingSchema.js";
 import { createTracking } from "../controller/shipmentTrackingController.js";
@@ -50,6 +53,7 @@ router.post(
 );
 
 router.get("/history/:userId", getShipmentHistory);
+router.get("/stats/:userId", getStats);
 
 router.patch(
   "/:shipmentId/cancel",
@@ -69,6 +73,8 @@ router.post(
 router.post("/:shipmentId/pickup", restrictTo("driver", "admin"), markPickedUp);
 router.post("/:shipmentId/transit", restrictTo("driver", "admin"), markInTransit);
 router.post("/:shipmentId/deliver", restrictTo("driver", "admin"), markDelivered);
+
+router.post("/:shipmentId/rating", validator(createRatingSchema), submitRating);
 
 // For Tracking
 router.route("/:shipmentId/tracking").post(validator(validateShippingTrackingSchema), createTracking)

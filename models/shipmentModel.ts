@@ -43,6 +43,40 @@ const shipmentSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    vehicleType: {
+      type: String,
+      enum: ["motorcycle", "car", "van", "truck"],
+      required: true,
+    },
+    recipientName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    recipientPhone: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    pickupDate: {
+      type: Date,
+      required: true,
+    },
+    timeWindow: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    quantity: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    specialInstructions: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     price: {
       type: Number,
       required: true,
