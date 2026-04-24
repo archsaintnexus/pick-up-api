@@ -1,382 +1,482 @@
 # Pick-Up Logistics API
 
-A comprehensive Node.js/Express API for managing logistics operations, shipment tracking, and user management. Built with TypeScript, MongoDB, and real-time WebSocket support.
+A modern, scalable logistics API built with Node.js, Express, TypeScript, and MongoDB. Manage shipments, track deliveries in real-time, handle email notifications, and support multiple user roles—all with a robust event-driven architecture.
 
 ## 📋 Overview
 
-Pick-Up Logistics API is a production-ready backend service designed to streamline logistics operations. It provides features for user management, shipment tracking, real-time updates via WebSocket, and administrative controls.
+Pick-Up Logistics is a full-featured backend API for logistics and delivery management. It provides comprehensive shipment tracking, real-time notifications via WebSocket, role-based access control, and event-driven email processing.
 
-### Key Features
-
-- **User Management**: Registration, authentication, and profile management
-- **Shipment Management**: Create, update, and manage shipments
-- **Real-Time Tracking**: WebSocket support for live shipment updates
-- **Admin Dashboard**: Administrative endpoints for shipment oversight
-- **API Documentation**: Interactive Swagger/OpenAPI documentation
-- **Security**: Helmet for HTTP headers, CORS configuration, and request sanitization
-- **Validation**: Joi schema validation for request payloads
-- **Error Handling**: Comprehensive error handling and logging
-- **TypeScript**: Full type safety across the codebase
-- **Testing**: Jest-based unit and integration tests
+**Key Features:**
+- 🚚 **Shipment Management** – Create, track, and manage shipments across multiple statuses
+- 🔐 **JWT Authentication** – Secure API endpoints with token-based authentication and OTP verification
+- 👥 **Role-Based Access Control** – Support for customer, business, admin, and driver roles
+- 📡 **Real-Time Updates** – Socket.io integration for live shipment tracking and notifications
+- 📧 **Async Email Queue** – BullMQ-powered email processing with worker pool
+- 📊 **Event-Driven Architecture** – Decoupled side effects using Node EventEmitter
+- 📝 **Swagger Documentation** – Auto-generated API docs with swagger-ui-express
+- 🧪 **Comprehensive Testing** – Jest tests with MongoDB Memory Server (no external DB needed)
+- ⚡ **TypeScript Strict Mode** – Type-safe codebase with strict ESLint rules
 
 ## 🛠️ Tech Stack
 
-- **Runtime**: Node.js with TypeScript
-- **Framework**: Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Real-Time**: Socket.io
-- **Validation**: Joi
-- **Documentation**: Swagger/OpenAPI
-- **Security**: Helmet, CORS, express-mongo-sanitize
-- **Email**: Nodemailer & Resend
-- **Testing**: Jest & Supertest
-- **Linting**: ESLint with TypeScript support
-- **Development**: Nodemon, tsx
+| Layer | Technology |
+|-------|-----------|
+| **Runtime** | Node.js 20+ |
+| **Language** | TypeScript 5.4+ |
+| **Framework** | Express 4.19+ |
+| **Database** | MongoDB 8.x (Mongoose ODM) |
+| **Cache & Queue** | Redis 7+ (ioredis, BullMQ) |
+| **Real-Time** | Socket.io 4.8+ |
+| **Testing** | Jest 30+, MongoDB Memory Server 11+ |
+| **Code Quality** | ESLint 10+, TypeScript strict mode |
+| **Email** | Resend 6.9+ (transactional email API) |
 
 ## 📦 Prerequisites
 
-- Node.js >= 18.x
-- npm >= 9.x or yarn
-- MongoDB 4.4+ (local or Atlas)
-- Environment variables configured (see [Configuration](#configuration))
+- **Node.js** 20 or higher
+- **npm** 10+
+- **MongoDB** 5.0+ (or use MongoDB Atlas for cloud)
+- **Redis** 7+ (self-hosted or cloud service)
+- **Resend API Key** (for email functionality)
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### 1. Clone the Repository
+### 1. Clone & Install
 
 ```bash
 git clone <repository-url>
 cd pick-up-api
-```
-
-### 2. Install Dependencies
-
-```bash
 npm install
 ```
 
-### 3. Configuration
+### 2. Environment Setup
 
-Create a `.env` file in the root directory based on the provided `.env.example`:
+Copy the example configuration and update with your credentials:
 
 ```bash
 cp config.env.example config.env
 ```
 
-Update `config.env` with your values:
+Configure `config.env` with your environment variables:
 
 ```env
+# Server
 PORT=3000
 NODE_ENV=development
-DATABASE=mongodb+srv://username:password@cluster.mongodb.net/pickup-logistics?retryWrites=true&w=majority
-DATABASE_PASSWORD=your_actual_password
-RESEND_API_KEY=your_resend_api_key
+
+# MongoDB
+DATABASE=mongodb+srv://username:password@cluster.mongodb.net/pickup-logistics
+DATABASE_PASSWORD=your_password
+
+# JWT
+JWT_SECRET=your-super-secret-key-min-32-chars
+JWT_EXPIRES_IN=1d
+JWT_COOKIE_EXPIRES_IN=10
+
+# OTP (One-Time Password)
+OTP_EXPIRES_IN=300
+
+# Redis
+REDIS_URL=redis://user:password@localhost:6379
+# OR
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=your_redis_password
+
+# Email (Resend)
+RESEND_API_KEY=re_your_resend_key
 RESEND_FROM_EMAIL=noreply@yourdomain.com
 ```
 
-**Required Environment Variables:**
+### 3. Development
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PORT` | Server port | `3000` |
-| `NODE_ENV` | Environment mode | `development` or `production` |
-| `DATABASE` | MongoDB connection string | `mongodb+srv://...` |
-| `DATABASE_PASSWORD` | MongoDB password | `your_password` |
-| `RESEND_API_KEY` | Resend email service API key | `re_...` |
-| `RESEND_FROM_EMAIL` | Sender email address | `noreply@domain.com` |
-
-### 4. Start Development Server
+Start the development server with hot reload:
 
 ```bash
 npm run dev
 ```
 
-The API will start on `http://localhost:3000`.
-
-## 📚 Usage
-
-### Development
-
-Start the development server with hot reloading:
+In another terminal, start the email worker:
 
 ```bash
-npm run dev
+npm run dev:worker
 ```
 
-### Production
+The server runs on `http://localhost:3000` by default.
 
-Build and start in production mode:
+### 4. View API Documentation
+
+Open your browser to `http://localhost:3000/api-docs` for interactive Swagger documentation.
+
+## 📖 Usage
+
+### Build for Production
 
 ```bash
 npm run build
 npm start
 ```
 
-Or with production environment variables:
+Email worker (separate process):
 
 ```bash
-npm run prod
+npm run start:worker
 ```
 
-### API Documentation
+### Available Scripts
 
-Access the interactive Swagger documentation at:
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Start dev server with hot reload (nodemon + tsx) |
+| `npm run dev:worker` | Start email worker in dev mode |
+| `npm run build` | Compile TypeScript to JavaScript |
+| `npm start` | Run compiled server |
+| `npm run start:worker` | Run compiled email worker |
+| `npm run prod` | Start in production mode |
+| `npm test` | Run all tests (in-band, in-memory DB) |
+| `npm test -- --watch` | Run tests in watch mode |
+| `npm test -- --testPathPattern=shipment` | Run specific test file |
+| `npm run lint` | Run ESLint |
+| `npm run typecheck` | TypeScript type checking |
+
+## 🏗️ Architecture
+
+### Request Flow
 
 ```
-http://localhost:3000/api-docs
+Request
+  ↓
+Routes (routes/)
+  ↓
+Validator Middleware (Joi schemas)
+  ↓
+Authentication Middleware (JWT)
+  ↓
+Authorization Middleware (role check)
+  ↓
+Controllers (business logic & HTTP handling)
+  ↓
+Services (domain logic)
+  ↓
+Models (MongoDB schemas)
 ```
 
-### Available Routes
+### Core Patterns
 
-#### Users
-- `POST /api/v1/users/register` - Register a new user
-- `POST /api/v1/users/login` - User login
-- `GET /api/v1/users/profile` - Get user profile
-- `PUT /api/v1/users/profile` - Update user profile
+**Controller-Service-Model Pattern:**
+- **Controllers** (`controller/`) – Handle HTTP requests/responses
+- **Services** (`services/`) – Contain business logic and database operations
+- **Models** (`models/`) – Define Mongoose schemas
 
-#### Shipments
-- `POST /api/v1/shipments` - Create shipment
-- `GET /api/v1/shipments` - List shipments
-- `GET /api/v1/shipments/:id` - Get shipment details
-- `PUT /api/v1/shipments/:id` - Update shipment
-- `DELETE /api/v1/shipments/:id` - Delete shipment
+**Event-Driven Architecture:**
+- `events/eventBus.ts` – Central event emitter
+- Events: `shipment.cancelled`, `shipment.status_changed`, `invoice.generated`
+- `events/registerEventListeners.ts` – Registers listeners for side effects (audit logs, notifications)
 
-#### Admin
-- `GET /api/v1/admin/shipments` - List all shipments (admin)
-- `PUT /api/v1/admin/shipments/:id` - Update shipment (admin)
-- `GET /api/v1/admin/analytics` - Get analytics (admin)
+**Async Email Queue:**
+- `Queues/emailQueue.ts` – BullMQ queue configuration
+- `worker/emailWorker.ts` – Separate worker process for processing emails
+- `templates/` – Email templates
 
-### WebSocket Events
+**Real-Time WebSocket:**
+- `socket.ts` – Socket.io configuration
+- Rooms: `tracking_${trackingNumber}` (shipment updates), per-user notification rooms
 
-The API provides real-time updates via Socket.io:
+**Validation:**
+- `SchemaTypes/` – Joi validation schemas
+- `middleware/validator.ts` – Applies schemas with role context
+- Supports conditional validation based on user role
 
-```javascript
-// Connect to WebSocket
-const socket = io('http://localhost:3000');
+**Error Handling:**
+- `utils/ErrorClass.ts` – Custom error class with statusCode
+- `controller/errorController.ts` – Global error handler
+- `express-async-errors` – Automatic async error catching
 
-// Listen for shipment updates
-socket.on('shipment:updated', (data) => {
-  console.log('Shipment updated:', data);
-});
+### User Roles
 
-// Emit tracking request
-socket.emit('track:shipment', { shipmentId: '123' });
+- **customer** – End users tracking shipments
+- **business** – Merchants creating and managing shipments
+- **admin** – Administrative access and system management
+- **driver** – Delivery personnel (pickup/drop-off)
+
+Roles enforced via `middleware/restrictTo.ts` on protected routes.
+
+### Shipment Statuses
+
 ```
+PENDING → ASSIGNED → PICKED_UP → IN_TRANSIT → DELIVERED
+              ↓
+          CANCELLED (at any stage)
+```
+
+Defined in `constants/shipmentStatus.ts`. Events triggered on status changes.
 
 ## 🧪 Testing
 
-### Run All Tests
+### Test Setup
+
+Tests use **MongoDB Memory Server** (in-memory, no external DB needed). 
+
+- `tests/setup.ts` – Database setup/teardown helpers
+- `tests/__mocks__/` – Auto-mocked modules for testing
+  - `protector.ts` – Auth bypass (injects test user)
+  - `emailQueue.ts` – Email queue stub
+  - `redis.ts` – Redis stub
+
+### Running Tests
 
 ```bash
+# Run all tests
 npm test
-```
 
-### Run Tests in Watch Mode
-
-```bash
+# Watch mode
 npm test -- --watch
+
+# Single test file
+npm test -- --testPathPattern=shipment.cancel
 ```
 
-### Generate Coverage Report
+### Test Requirements
+
+- Tests must set `NODE_ENV`, `RESEND_API_KEY`, and other required env vars **before imports**
+- Run with `--runInBand --forceExit` (see `jest.config.cjs`)
+- No external database or Redis needed—all mocked
+
+## 🔒 Authentication & Authorization
+
+### JWT Authentication
+
+- Tokens sent via **Bearer header** (`Authorization: Bearer <token>`) or **HTTP-only cookie**
+- Protected routes verified by `middleware/protector.ts`
+- Token expiry configurable via `JWT_EXPIRES_IN`
+
+### OTP Verification
+
+- One-Time Passwords stored in Redis with expiry (`OTP_EXPIRES_IN`)
+- Used for sensitive operations (e.g., email verification)
+
+### Password Security
+
+- Hashed with bcrypt (12 rounds)
+- Never stored in plain text
+
+## 📡 WebSocket Events (Socket.io)
+
+Real-time tracking and notifications:
+
+- **`shipment:updated`** – Broadcast when shipment status changes
+- **`notification:received`** – User-specific notifications
+- **Join tracking room** – `socket.join(`tracking_${trackingNumber}`)`
+
+## 📧 Email Processing
+
+**Async Queue Approach:**
+1. Service enqueues email job with `Queues/emailQueue.ts`
+2. BullMQ stores job in Redis
+3. Worker (`worker/emailWorker.ts`) processes jobs independently
+4. Resend API sends emails
+
+Templates in `templates/` directory. Decoupled from main request flow—failures don't break API responses.
+
+## 🐳 Deployment
+
+### Environment Variables in Production
+
+Set all required env vars (database, Redis, JWT secret, Resend API key) via:
+- Environment configuration management (AWS Secrets Manager, Railway config, etc.)
+- OR a secure `.env` file (not version-controlled)
+
+### Production Checklist
+
+- [ ] `NODE_ENV=production`
+- [ ] Strong `JWT_SECRET` (min 32 chars)
+- [ ] MongoDB Atlas connection (or secure MongoDB instance)
+- [ ] Redis 7+ (or Redis Cloud)
+- [ ] Resend account with API key
+- [ ] CORS configured for your frontend domain
+- [ ] Rate limiting enabled (`express-rate-limit`)
+- [ ] Helmet security headers enabled
+- [ ] MongoDB authentication enabled
+- [ ] Run full test suite before deployment
+
+### Database Migrations
+
+Currently no migration system. Schema changes should be:
+1. Updated in `models/`
+2. Tested thoroughly
+3. Deployed with code
+
+## 🚨 Error Handling
+
+All errors follow a consistent format:
+
+```json
+{
+  "status": "error",
+  "statusCode": 400,
+  "message": "User-friendly error message"
+}
+```
+
+The global error controller (`controller/errorController.ts`) handles:
+- Operational errors (custom `ErrorClass`)
+- MongoDB validation errors
+- JWT errors
+- Unhandled promise rejections
+
+## 📊 Code Quality
+
+### Linting & Type Checking
 
 ```bash
-npm test -- --coverage
+npm run lint        # Check code style
+npm run typecheck   # Check type safety
+npm run build       # Compile (catches TS errors)
 ```
 
-## 🔍 Code Quality
+### TypeScript Strictness
 
-### Linting
+- Strict mode enabled
+- `exactOptionalPropertyTypes` – Strict optional property handling
+- `noUncheckedIndexedAccess` – Safe object indexing
+- `verbatimModuleSyntax` – Explicit import/export syntax
+- ES Modules (`"type": "module"` in package.json)
+- All local imports use `.js` extensions (even for `.ts` files)
 
-Check code style with ESLint:
+## 🔄 CI/CD Pipeline
 
-```bash
-npm run lint
-```
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push:
 
-### Type Checking
+1. **Lint** – ESLint checks
+2. **Type Check** – TypeScript validation
+3. **Build** – Compile to JavaScript
+4. **Test** – Jest tests with Redis 7 service
+5. **Audit** – npm security audit
 
-Run TypeScript type checking:
+Runs on Node 20 with Redis 7 service container.
 
-```bash
-npm run typecheck
-```
-
-### Build
-
-Compile TypeScript to JavaScript:
-
-```bash
-npm run build
-```
-
-## 📁 Project Structure
+## 📝 Project Structure
 
 ```
-pick-up-api/
-├── controller/        # Request handlers and business logic
-├── routes/           # API route definitions
-├── models/           # MongoDB models and schemas
-├── services/         # Business logic and utilities
-├── middleware/       # Custom Express middleware
-├── utils/            # Helper functions and utilities
-├── events/           # Event listeners and handlers
-├── SchemaTypes/      # TypeScript schema interfaces
-├── tests/            # Test suites
-├── constants/        # Application constants
-├── socket.ts         # Socket.io configuration
-├── db.ts             # Database connection
-├── app.ts            # Express app setup
-├── server.ts         # Server entry point
-├── swagger.json      # API documentation
-├── tsconfig.json     # TypeScript configuration
-└── package.json      # Dependencies and scripts
+.
+├── app.ts                    # Express app setup
+├── server.ts                 # Entry point
+├── socket.ts                 # Socket.io configuration
+├── db.ts                     # MongoDB connection
+├── config.env.example        # Environment template
+├── constants/                # App constants (shipment statuses, etc.)
+├── controller/               # HTTP controllers
+├── middleware/               # Express middlewares (auth, validation, etc.)
+├── models/                   # Mongoose schemas
+├── routes/                   # API route definitions
+├── services/                 # Business logic
+├── types/                    # TypeScript type definitions
+├── utils/                    # Utility functions
+├── events/                   # Event emitter & listeners
+├── Queues/                   # BullMQ queue setup
+├── worker/                   # Email worker process
+├── templates/                # Email templates
+├── SchemaTypes/              # Joi validation schemas
+├── tests/                    # Jest test files
+├── dist/                     # Compiled JavaScript (generated)
+├── node_modules/             # Dependencies (generated)
+├── package.json              # Dependencies & scripts
+├── tsconfig.json             # TypeScript config
+├── jest.config.cjs           # Jest config
+├── eslint.config.js          # ESLint config
+└── swagger.json              # API documentation
 ```
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Please follow these guidelines:
+We welcome contributions! Follow these guidelines:
 
-### Getting Started with Contributing
+### Setup Development Environment
 
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/your-username/pick-up-api.git
-   cd pick-up-api
-   ```
-3. **Create a feature branch**:
+```bash
+git clone <repository-url>
+cd pick-up-api
+npm install
+cp config.env.example config.env
+# Configure config.env with test credentials
+npm run dev
+```
+
+### Development Workflow
+
+1. **Create a feature branch:**
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
-### Development Workflow
+2. **Make changes and test:**
+   ```bash
+   npm run lint         # Fix linting issues
+   npm run typecheck    # Check types
+   npm test             # Run tests
+   npm run build        # Verify build
+   ```
 
-1. **Install dependencies**: `npm install`
-2. **Make your changes** and add tests for new functionality
-3. **Run linting**: `npm run lint`
-4. **Run type checking**: `npm run typecheck`
-5. **Run tests**: `npm test`
-6. **Build the project**: `npm run build`
+3. **Commit with clear messages:**
+   ```bash
+   git commit -m "feat: add shipment cancellation feature"
+   ```
 
-### Before Submitting a Pull Request
+4. **Push and create a pull request:**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
 
-- Ensure all tests pass: `npm test`
-- Ensure code is properly linted: `npm run lint`
-- Ensure TypeScript types are valid: `npm run typecheck`
-- Add or update tests for your changes
-- Update documentation if needed
-- Follow the existing code style and patterns
+### Code Standards
 
-### Pull Request Process
+- **Language:** TypeScript with strict mode
+- **Style:** Follow ESLint rules (run `npm run lint`)
+- **Testing:** Add tests for new features
+- **Commits:** Use conventional commits (feat:, fix:, docs:, etc.)
+- **Types:** Avoid `any`; use explicit types
 
-1. Push your feature branch to your fork
-2. Create a Pull Request against the main repository
-3. Provide a clear description of your changes
-4. Reference any related issues
-5. Wait for code review and CI checks to pass
-6. Address any feedback from reviewers
+### Commit Convention
 
-### Commit Messages
-
-Write clear, descriptive commit messages:
-
-```bash
-# Good
-git commit -m "feat: add shipment status notification system"
-git commit -m "fix: resolve race condition in shipment updates"
-git commit -m "docs: update API documentation for tracking endpoints"
-
-# Avoid
-git commit -m "fixed stuff"
-git commit -m "update"
+```
+feat: add new feature
+fix: bug fix
+docs: documentation updates
+refactor: code refactoring
+test: test updates
+chore: dependency updates, config changes
 ```
 
-### Code Style
+### Pull Request Checklist
 
-- Follow the existing code patterns and conventions
-- Use TypeScript for new code
-- Add JSDoc comments for complex functions
-- Keep functions focused and testable
-- Use meaningful variable and function names
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Types pass (`npm run typecheck`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] Meaningful commit messages
+- [ ] Documentation updated (if needed)
+- [ ] No console.log or debug code
 
-### Reporting Issues
+## 📄 License
 
-If you find a bug or have a feature request:
+ISC
 
-1. Check if the issue already exists
-2. Provide a clear description
-3. Include steps to reproduce (for bugs)
-4. Attach relevant error logs or screenshots
-5. Specify your environment (Node version, OS, etc.)
+## 🆘 Support & Issues
 
-## 🔒 Security
+For bugs, feature requests, or questions:
 
-- **Helmet**: Protects against common HTTP vulnerabilities
-- **CORS**: Configured for secure cross-origin requests
-- **Sanitization**: MongoDB injection protection via express-mongo-sanitize
-- **Rate Limiting**: Available via express-rate-limit
-- **Environment Variables**: Sensitive data stored in environment, not in code
-- **Validation**: All inputs validated with Joi schemas
-
-### Security Best Practices
-
-- Never commit `.env` files or sensitive credentials
-- Always use HTTPS in production
-- Keep dependencies updated: `npm audit fix`
-- Validate and sanitize all user inputs
-- Use environment-specific configurations
-
-## 📝 License
-
-This project is licensed under the ISC License - see the LICENSE file for details.
-
-## 💡 Support
-
-For issues, questions, or suggestions:
-
-1. Check existing issues and discussions
-2. Create a new GitHub issue with detailed information
-3. Contact the development team
-
-## 🔄 Development Workflow
-
-### Local Development
-
-```bash
-# Install dependencies
-npm install
-
-# Configure environment
-cp config.env.example config.env
-# Edit config.env with your settings
-
-# Start development server
-npm run dev
-
-# In another terminal, run tests
-npm test -- --watch
-```
-
-### Making Changes
-
-1. Create a feature branch
-2. Make your changes
-3. Run linting and type checking
-4. Write tests for new functionality
-5. Update documentation
-6. Commit with clear messages
-
-### Deployment
-
-1. Ensure all tests pass: `npm test`
-2. Build the project: `npm run build`
-3. Run in production: `npm start`
-4. Monitor logs and metrics
+1. Check existing [GitHub Issues](https://github.com/yourusername/pick-up-api/issues)
+2. Open a new issue with:
+   - Clear description
+   - Steps to reproduce (for bugs)
+   - Expected vs actual behavior
+   - Environment details (Node version, OS, etc.)
 
 ## 📞 Contact
 
-For more information about this project, please contact the development team or open an issue on GitHub.
+For questions or collaboration:
+- GitHub Issues – For bugs and features
+- Email – [Your contact email]
 
 ---
 
-**Happy coding! 🚀**
+**Happy shipping! 🚀**

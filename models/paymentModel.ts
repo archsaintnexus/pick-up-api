@@ -28,6 +28,11 @@ const paymentSchema = new mongoose.Schema(
       default: "NGN",
       trim: true,
     },
+    stripePaymentIntentId: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     reference: {
       type: String,
       unique: true,
