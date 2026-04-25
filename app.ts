@@ -14,6 +14,7 @@ import invoiceRouter from "./routes/invoiceRoute.js";
 import driverRouter from "./routes/driverRoute.js";
 import vehicleRouter from "./routes/vehicleRoute.js";
 import paymentRouter from "./routes/paymentRoute.js";
+import adminRouter from "./routes/adminRouter.js";
 import { stripeWebhookHandler } from "./controller/paymentController.js";
 
 import "express-async-errors";
@@ -27,11 +28,32 @@ import globalErrorHandler from "./controller/errorController.js";
 
 const app = express();
 
+// Trust the first proxy (Render, Cloudflare) so that express-rate-limit
+// can correctly read the client IP from X-Forwarded-For.
+app.set("trust proxy", 1);
+
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-app.use(cors());
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:3000",
+  "http://localhost:3001",
+].filter(Boolean) as string[];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  }),
+);
 app.use(helmet());
 app.use(responseTime());
 app.use(cookieParser());
@@ -69,6 +91,7 @@ app.use("/api/v1/invoices", invoiceRouter);
 app.use("/api/v1/drivers", driverRouter);
 app.use("/api/v1/vehicles", vehicleRouter);
 app.use("/api/v1/payments", paymentRouter);
+app.use("/api/v1/admin", adminRouter);
 
 app.use((_req, _res, next) => {
   next(new ErrorClass(`Can't find route ${_req.originalUrl} on this server!!`, 404));
