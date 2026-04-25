@@ -38,6 +38,7 @@ if (process.env.NODE_ENV === "development") {
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
+  process.env.API_URL,
   "http://localhost:3000",
   "http://localhost:3001",
 ].filter(Boolean) as string[];
