@@ -19,6 +19,7 @@ module.exports = {
     ".*Queues/emailQueue.*": "<rootDir>/tests/__mocks__/emailQueue.ts",
     ".*services/redis.*": "<rootDir>/tests/__mocks__/redis.ts",
     ".*middleware/protector.*": "<rootDir>/tests/__mocks__/protector.ts",
+    ".*stripeService.*": "<rootDir>/tests/__mocks__/stripeService.ts",
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
   clearMocks: true,
