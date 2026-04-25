@@ -14,6 +14,7 @@ import invoiceRouter from "./routes/invoiceRoute.js";
 import driverRouter from "./routes/driverRoute.js";
 import vehicleRouter from "./routes/vehicleRoute.js";
 import paymentRouter from "./routes/paymentRoute.js";
+import adminRouter from "./routes/adminRouter.js";
 import { stripeWebhookHandler } from "./controller/paymentController.js";
 
 import "express-async-errors";
@@ -90,6 +91,7 @@ app.use("/api/v1/invoices", invoiceRouter);
 app.use("/api/v1/drivers", driverRouter);
 app.use("/api/v1/vehicles", vehicleRouter);
 app.use("/api/v1/payments", paymentRouter);
+app.use("/api/v1/admin", adminRouter);
 
 app.use((_req, _res, next) => {
   next(new ErrorClass(`Can't find route ${_req.originalUrl} on this server!!`, 404));
