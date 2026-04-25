@@ -27,11 +27,32 @@ import globalErrorHandler from "./controller/errorController.js";
 
 const app = express();
 
+// Trust the first proxy (Render, Cloudflare) so that express-rate-limit
+// can correctly read the client IP from X-Forwarded-For.
+app.set("trust proxy", 1);
+
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-app.use(cors());
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:3000",
+  "http://localhost:3001",
+].filter(Boolean) as string[];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  }),
+);
 app.use(helmet());
 app.use(responseTime());
 app.use(cookieParser());

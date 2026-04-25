@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://pick-up-api-a0ry.onrender.com",
+      "url": "https://pickup.archsaintnexus.com",
       "description": "Production server"
     },
     {
